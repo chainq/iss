@@ -1,9 +1,26 @@
-{ þ Inquisition's Module Player þ }
-{ þ Example Player for ISS þ }
-{ þ By Charlie/iNQ þ }
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * Inquisition's Module Player * }
+{ * Example Player for ISS * }
+{ * By Charlie/iNQ * }
 
 {$IFDEF GO32V2}
- { DEFINE REFRESHMETER} { þ Dirty hack, for debugging only. Do not enable. þ }
+ { DEFINE REFRESHMETER} { * Dirty hack, for debugging only. Do not enable. * }
 {$ENDIF}
 
 {$ASMMODE INTEL}
@@ -26,25 +43,25 @@ Uses Crt
 Const NoteStrTable   : Array[0..11] Of String[2] =
       ('C-','C#','D-','D#','E-','F-','F#','G-','G#','A-','A#','B-');
       FXStrTable : Array[0..17] Of String[6] =
-      ('appreg','porta','porta','porta','vibrat','p+vls','vibvls',
+      ('appreg','portau','portad','portan','vibrat','pn+vls','vibvls',
        'tremol','setpan','offset','volsld','posjmp','setvol','patbrk',
        '?-??-?','setspd','globvl','gvolsl');
 
       EFXStrTable : Array[0..14] Of String[6] =
-      ('filter','fport','fport','glissc','vibrct','finetn','stloop',
-       'tremct','?-??-?','retrig','fvols','fvols','notcut','delay',
+      ('filter','fportu','fportd','glissc','vibrct','finetn','stloop',
+       'tremct','?-??-?','retrig','fvolsu','fvolsd','notcut','delayn',
        'pdelay');
 
       VFXStrTable : Array[1..10] Of String[6] =
-      ('vlsld','vlsld','fnsld','fnsld','vibspd','vibrat','setpan',
-       'pnsld'+#27,'pnsld'+#26,'porta');
+      ('vlsldd','vlsldu','fnsldd','fnsldu','vibspd','vibrat','setpan',
+       'pnsldl','pnsldr','portan');
 
       ChVolumeColMap : Array[0..15] Of Byte =
       (10,10,10,10,10,10,10,10,10,10,10,14,14,14,12,12);
 
       DefaultFileName = '';
 
-      INQPlayerVersionStr    = '0.2.13';
+      INQPlayerVersionStr    = '0.3.0';
       AllowFileNameParameter = True;
 
 Var ModFileName : String;
@@ -123,7 +140,7 @@ Begin
    CheckInternalName;
   End;
 
- { þ ISS Main Init þ }
+ { * ISS Main Init * }
  WriteLn;
  ISS_InitSystem;
  WriteLn;
@@ -146,11 +163,11 @@ Begin
  TextColor(LightGray); TextBackGround(Black);
  ClrScr;
  TextColor(White); TextBackGround(Blue); ClrEol;
- Write(' þ Inquisition''s Module Player version ',INQPlayerVersionStr,' for ',ISS_PlatformStr,' by Charlie/iNQ');
+ Write(' * Inquisition''s Module Player version ',INQPlayerVersionStr,' for ',ISS_PlatformStr,' by Charlie/iNQ');
 
  GotoXY(1,50); ClrEol;
  With ISS_SoundDevice^ Do Begin
-   Write(' þ Output: ',DevName,' (',DevMixRate,'hz, ');
+   Write(' * Output: ',DevName,' (',DevMixRate,'hz, ');
    If Boolean(DevType And ISS_Dev16Bit) Then Write('16bit') Else Write('8bit');
    Write(', ');
    If Boolean(DevType And ISS_DevStereo) Then Write('stereo') Else Write('mono');
@@ -174,11 +191,11 @@ Begin
   TextMode(_80cols+_25rows);
  {$ENDIF}
  ClrScr;
- WriteLn('þ Inquisition''s Module Player version ',INQPlayerVersionStr,' for ',ISS_PlatformStr,' by Charlie/iNQ');
- WriteLn('þ SECOND OFFICIAL RELEASE : Codename "Yavin" [',{$I %DATE%},']');
- WriteLn('þ Compiled by : ',{$I %CODER%},' at ',{$I %TIME%});
- WriteLn('þ FPC Version : ',{$I %FPCVERSION%});
- WriteLn('þ ISS Version : ',ISS_VersionStr);
+ WriteLn('* Inquisition''s Module Player version ',INQPlayerVersionStr,' for ',ISS_PlatformStr,' by Charlie/iNQ');
+ WriteLn('* SECOND OFFICIAL RELEASE : Codename "Yavin" [',{$I %DATE%},']');
+ WriteLn('* Compiled by : ',{$I %CODER%},' at ',{$I %TIME%});
+ WriteLn('* FPC Version : ',{$I %FPCVERSION%});
+ WriteLn('* ISS Version : ',ISS_VersionStr);
  WriteLn;
 End;
 
@@ -186,13 +203,13 @@ Procedure DrawGlobalVolumeBar;
 Var Counter : DWord;
 Begin
  TextColor(LightGray);
- Write('VOLUME: Player-[',WriteHex(ISS_GlobalPlVolume),'] þ ',
+ Write('VOLUME: Player-[',WriteHex(ISS_GlobalPlVolume),'] * ',
                'System-[',WriteHex(ISS_GlobalSSVolume),'][');
- For Counter:=0 To (ISS_GlobalSSVolume Shr 3) Do Write('þ');
+ For Counter:=0 To (ISS_GlobalSSVolume Shr 3) Do Write('*');
 
  If ISS_GlobalSSVolume<>128 Then Begin
    TextColor(DarkGray);
-   For Counter:=(ISS_GlobalSSVolume Shr 3) To 15 Do Write('þ');
+   For Counter:=(ISS_GlobalSSVolume Shr 3) To 15 Do Write('*');
   End;
 
  TextColor(LightGray);
@@ -248,18 +265,18 @@ Begin
      {TextColor(ChVolumeColMap[Counter+1]-8);}
      TextColor(DarkGray);
     End;
-   Write('þ');
+   Write('*');
   End;
 
 { If VolumeVal>0 Then
    For Counter:=0 To (VolumeVal Shr 2) Do Begin
-     TextColor(ChVolumeColMap[Counter]); Write('þ');
+     TextColor(ChVolumeColMap[Counter]); Write('*');
     End;
  If VolumeVal<64 Then Begin
    For Counter:=(VolumeVal Shr 2) To 15 Do Begin
 
      TextColor(DarkGray);
-     Write('þ');
+     Write('*');
     End;
   End;}
 
@@ -279,7 +296,7 @@ Begin
  Write('[-------]');
  GotoXY((WhereX-8)+PanVal,WhereY);
  TextColor(Cyan);
- Write('þ');
+ Write('*');
 
  TextColor(LightGray);
 End;
@@ -327,11 +344,11 @@ Begin
            TextColor(DarkGray);
            Write('[',Counter:2,'][---]');
            DrawChannelEffects(Counter);
-           Write('[--][þþþþþþþþþþþþþþþþ][-------][',' ':22,']');
+           Write('[--][****************][-------][',' ':22,']');
 
           End;
 
-{ þ Debug code rules :) þ }
+{ * Debug code rules :) * }
 {          GotoXY(60,13+Counter);}
 {          Write(ChNote:3);}
 {          Write(VChControl:4);}
@@ -353,7 +370,7 @@ Begin
 {            If MixSmpPtr=Nil Then Write(' ':4) Else Write(MixSmpPtr^.SType And ISS_Smp16BitData:4);}
 {            Write(VChFreq:7);}
 {           End;}
-{ þ Debug code rules :) þ }
+{ * Debug code rules :) * }
 
 
         End;
@@ -369,7 +386,7 @@ Procedure DrawPlayerHeader;
 Begin
  GotoXY(1,2);
  WriteLn('--[Global]----------------------------------------------------------------------');
- WriteLn('MUSIC : Filename-[',ModFileName,'] þ Title-[',ModFilePtr^.MTitle,']');
+ WriteLn('MUSIC : Filename-[',ModFileName,'] * Title-[',ModFilePtr^.MTitle,']');
  GotoXY(1,10);
  WriteLn('--[Channels]--------------------------------------------------------------------');
  WriteLn(' Ch  Not    FX     VlFX         Volume          Panning      Instrument Name');
@@ -385,7 +402,7 @@ Begin
  Window(1,1,80,50);
  ClrScr;
  GotoXY(3,3);
- WriteLn(' þ INQPLAY ',INQPlayerVersionStr,' MULTITASK MODE. PRESS ESC TO RETURN NORMAL MODE.');
+ WriteLn(' * INQPLAY ',INQPlayerVersionStr,' MULTITASK MODE. PRESS ESC TO RETURN NORMAL MODE.');
  Repeat
   {$IFDEF GO32V2}
    Timeslice;
@@ -479,9 +496,9 @@ Begin
 
     With ModFilePtr^ Do Begin
       WriteLn('STATUS: Speed/BPM-[',Speed:3,'/',BPM:3,
-              '] þ Order-[',WriteHex(Order),'/',WriteHex(MSongLength-1),
-              '] þ Pattern-[',WriteHex(Pattern),'/',WriteHex(MPatternNum-1),
-              '] þ Row-[',WriteHex(Row),'/',WriteHex(Rows),']'+#13+#10);
+              '] * Order-[',WriteHex(Order),'/',WriteHex(MSongLength-1),
+              '] * Pattern-[',WriteHex(Pattern),'/',WriteHex(MPatternNum-1),
+              '] * Row-[',WriteHex(Row),'/',WriteHex(Rows),']'+#13+#10);
      End;
 
     DrawGlobalVolumeBar;
@@ -500,17 +517,17 @@ Begin
       #0 : Begin
             Pressed:=ReadKey;
             Case Pressed Of
-              #72,#75 : Begin { þ Cursor Up þ }
+              #72,#75 : Begin { * Cursor Up * }
                       If ISS_GetOrder>0 Then ISS_SetOrder(Order-1);
                      End;
-              #80,#77 : Begin { þ Cursor Down þ }
+              #80,#77 : Begin { * Cursor Down * }
                       If ISS_GetOrder<ModFilePtr^.MSongLength-1 Then ISS_SetOrder(Order+1);
                      End;
              End;
 
            End;
 
-      #77,#109 : Begin { þ Entering Multitask mode þ }
+      #77,#109 : Begin { * Entering Multitask mode * }
                   SuspendMode;
                  End;
 
@@ -522,7 +539,7 @@ Begin
    End;
 
   {$IFDEF OS2}
-   DosSleep(32); { þ Moolteetaskeen' roolz 8) þ }
+   DosSleep(32); { * Moolteetaskeen' roolz 8) * }
   {$ENDIF}
  Until ExitPlayer;
  GotoXY(1,45);
