@@ -1,0 +1,299 @@
+
+                    þ Inquisition Sound Server Read Me þ
+
+  ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+
+  IMPORTANT!
+
+  This package is MAILWARE in case of NON COMMERCIAL usage. You should send
+  at least an e-mail to the author, when you're using it. With this, you can
+  get immediate support, an easy and fast way to reporting bugs, getting the
+  fixes for the bugs and notification when a new version is available.
+
+  PLEASE, HONOUR MY WORK AT LEAST SAYING "THANKS" TO ME...
+
+  This package is NOT FREE for commercial usage. You must not ask money
+  for it, or ask money for distributing it. If you want to include it on
+  a commercial CD-ROM collection, or want to use it in your commercial
+  or shareware program, you should contact the author first at one of the
+  addresses below. (If you're a computer magazine, and want to include this
+  on your CD-ROM, that's okay, but i'd like to have a piece of your magazine.
+  If you don't send me, it's up to you, but it wouldn't be nice...)
+
+  The author isn't responsible for any damage this package did in your
+  software or hardware equipment. Use at your OWN RISK. In other words
+  if it blowed up your computer, shame on you! If it did something good
+  i am responsible. :)
+
+  I'm not a native english speaker, so please excuse my poor phrases
+  and such.
+
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  TECH STUFF:
+
+  You'll need the followings to use this soundsystem:
+
+  - A Gravis Ultrasound soundcard, with as much onboard RAM as possible. :)
+  - ... or a SoundBlaster 2.0/Pro/16 or compatible card...
+  - ... or you can use it under OS/2 via DART, or the Manley GUS drivers...
+  - ... or you can use it in nosound mode.
+  - Some kind of x86 CPU. A faster 486 or slower Pentium will do the job.
+    Works well on a Pentium 100. I never tested it on slower computers.
+    Modules with more channels may require faster CPU. A 32 channel .XM
+    makes 15-30% CPU load on my Cyrix/IBM 6x86MX running at 250mhz (2,5x100)
+    with the highest mixer quality (44khz, 16bit, stereo). The same module
+    with GUS requires only 5% or even less.
+  - A VGA videocard. (for the example player only).
+  - Some RAM. 4-8MB should be enough for everything. Of course this also
+    depends on the module size. (Using a GUS reduces the amount of memory
+    needed.)
+  - Free Pascal Compiler. It's available from http://www.freepascal.org.
+    I recommend you using version 1.0.4 with this version of ISS. It should
+    work with any 1.0.x release though. (NOT 1.1.x!)
+
+  What's inside:
+
+  - 100% the "good" old x86 CPU instruction set. No FPU, MMX, 3DNow or SSE
+    instructions used, so you can use them without problems in your programs.
+  - Two example players, for easy understanding.
+  - Well commented sources.
+
+  þ DOS Notes:
+  - The GO32V2 version works both under CWSDPMI and PMODE/DJ extenders.
+  - Tested and works under plain DOS, Windows 9x DOS-Task (NOT under
+    ME/2000/NT), and OS/2 Warp DOS-Session. Reported to work under Linux
+    dosEmu too.
+  - The GUS driver DOES NOT work with GUSemu32. This WILL NOT change.
+    (At least on my side... If the authors of GUSemu32 figure out what's
+    wrong, and fix their emulator, that's up to them...)
+    I suggest you to always use the real one... Anyway DirectSound
+    support coming soon, so there will be no reasons to use a GUS
+    emulator under Win32 with ISS.
+  - If you experience buggy output on a GUS, try to run ULTRINIT.EXE
+    (or IWINIT.EXE in case of a GUS PnP) before the player.
+  - On SB16, i recommend you use 16bit output, because it's faster than
+    8bit, due to the mixer's internal structure. And it has better quality
+    of course. Sadly, some SB16 have problems using a 16bit DMA channel,
+    so if you experience problems with 16bit output, try to use 8bit.
+    (Ehm, you can't do this, because of a bug, see below... ;[ )
+    Also, some PCI cards, with SB emulator software may have problems.
+    Reconfiguring hardware resources may help in this case. (But for eg.
+    we could not get work an Aureal Vortex. With this card's emulator
+    software, the player simply exits at the first SB IRQ. I'm not sure,
+    why. Not tested under Windows, only plain DOS.)
+  - There is a KNOW bug with SB16 DMA handling, using an 8bit High DMA
+    channel with 16bit output, hangs the whole system. This problem is
+    reported by Stefan Goehler, thanks. It's not fixed, because the lack
+    of test hardware. (My own SB16 can't be configured to use 8bit high
+    DMA...) This will be fixed as soon as i get the necessary card to fix
+    it...
+  - Be sure that your ULTRASND and/or BLASTER environment variables are
+    set correctly, the player can't detect your soundcard(s) without these
+    variables.
+  - I was not able to test the SB driver with cards older than PRO, so
+    i'm looking for reports about these cards!
+
+  þ OS/2 Notes:
+  - The OS/2 version requires the EMX extender, properly installed MMOS/2
+    and soundcard drivers. Wasn't tested with versions below Warp4, but
+    should work on Warp3 with DART installed.
+  - The DART support is in pretty early stage, so it's possible you will
+    experience some problems. Anyway it was successfully tested on a
+    lot of soundcards. Please drop me an email if you experiencing problems.
+  - iNQPlay's OS/2 version is a fast&dirty hack to have better moduleplayer
+    that ISSPLAY. Use it in full-screen VIO session to have better results.
+    Press the 'M' key to enable multitasking mode, and let other programs
+    have some CPU time... ;)
+  - Be sure that you're using one of the latest GUS drivers available,
+    when using the player in GF1/Interwave native mode.
+  - The OS/2 support really broke some limits:
+    . AFAIK, it's the world's first (at least first available for public)
+      Free Pascal program, which makes use of MMOS/2, and the native GUS API.
+    . AFAIK, it's the world's first _working_ multiplatform moduleplayer
+      written in Free Pascal. (... or maybe in any Pascal variant ever?)
+    And more will come, just stay tuned...
+
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  CONTACTS:
+
+  WARNING! MY CHARLIE@SCENE-HU.COM EMAIL ADDRESS NO LONGER AVAILABLE!
+  DO NOT USE IT!
+
+  E-mail (preferred): charlie@scenergy.dfmk.hu
+                      charlie@alpha.dfmk.hu,
+                      charlie@demoscene.hu
+                      (choose one:)
+
+  IRC: #amigahu, #os2hun, #inq, #demoscene, #coders.hu on IRCNet
+       My IRC nick is Chain|Q.
+
+  Latest version of ISS : http://scenergy.dfmk.hu/inqcoders/
+  Inquisition homepage  : http://scenergy.dfmk.hu/inquisition/
+
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  ABOUT THE FUTURE:
+
+  I spent many time to develop this soundsystem, and i'm planning to continue
+  the development. However, if you think you need a feature, or you have any
+  suggestions drop an email to me! Anyway, i'm planning the following
+  enhancements in the near (or not-so near) future:
+
+  - Support for the ancient SB 1.0 and clones. (Single mode DMA sucks.:)
+  - Support for more platforms, like Linux's ALSA/OSS, and Windows'
+    DirectSound using the software mixer.
+  - Nice configuration UI and API which will allow full device and quality
+    control to the user and the programmer!
+  - Mixer and other optimizations (for less CPU load).
+  - Better quality mixer algorithms (like support for interpolation).
+  - Support for all features of the XM format.
+  - Support for more module formats. S3M and MOD are planned. IT support
+    is not planned, because it would require a HUGE amount of redesign
+    in the internal structure of the player, which is based on the XM
+    format. But who knows...
+  - Streaming audio support. User definiable audio streams, .WAV and
+    _maybe_ .MP3 support. AFAIK, it would be the world's first MP3 decoder
+    written in Pascal, so i'm very interrested in this.
+  - Support for Gravis Ultrasound PnP (Interwave) wavetable.
+  - Support for GUS PnP/MAX/Daughterboard and other WSS compatible cards
+    in software mixing mode.
+  - Better GUS driver, with 16bit sample support.
+  - Intelligent sample management with sample resizing features to play
+    XM's bigger than the available RAM. This is very useful for wavetable
+    soundcards with limited memory or with special sample format
+    requirements. (eg. GF1 based GUSes and Sound Blaster AWE series)
+  - Support for more CPU types (eg. PPC and M680x0) as soon as FPC will
+    support more.
+
+  - >>> THIS IS THE PLACE OF YOUR IDEA! <<< :)
+
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  EQUIPMENT USED:
+
+  Hardware: Gravis Ultrasound Plug'n'Play 8MB version 3.0
+            Gravis Ultrasound 1MB with ICS Mixer version 3.74
+            Gravis Ultrasound 1MB with Daughterboard (CS4231) version 3.4
+            Gravis Ultrasound MAX 1MB version 2.1
+            Gravis Ultrasound MAX 512K version 2.1
+            Sound Blaster Vibra16 (not PnP) with ICS WaveFront Wavetable
+            Sound Blaster PRO (original, not clone; DSP version 3.2)
+            Opti 8Cx930 (Sound Blaster Pro & WSS compatible)
+
+            NOTE: i'm collecting GUSes, because i'm fanatic :). If you have
+                  a GUS ACE, GUS Extreme or Synergy ViperMAX card, or any
+                  other GUS model/GUS clone model not mentioned above, and
+                  you don't need it, please contact with me! I'm also
+                  interrested in various other very old sound cards, like
+                  Pro Audio Spectrum (any variant),
+                  Adlib (any variant incl. Adlib Gold, but originals only)
+                  Game Blaster,
+                  Sound Blaster 1.0/1.5/2.0 (originals only)
+                  Sound Blaster PRO (originals only)
+                  Sound Blaster 16 _NOT_ PnP or Vibra (originals only)
+                  or the old Roland MIDI cards.
+
+                  I'm also looking for PC bridge cards into my Amiga4000T,
+                  especially a Commodore Westchester designed 386sx bridge
+                  (the A2386), so if you have one for sale, immediately
+                  contact me!
+
+  Software: The whole thing is programmed under OS/2 Warp 4 in DOS session
+            using DOS Navigator 1.50 as a programming environment.
+            Free Pascal Compiler of course, versions 0.99.10 - 1.0.5.
+
+  Other:    Incredible amount of beer, Pepsi Cola and coffee.
+            Incredible amount of modules, sids and mp3s.
+            An Amiga 1200 to play my favourite games when i'm too lazy
+            to code, and an Amiga 4000T to surf on the web, chat on IRC,
+            and write mail.
+            A hammer to damage equipment which refuses cooperation. :)
+
+  LITERATURE AND DOCUMENTATION:
+
+  Books: Bajusz - Bors - Csibra - Horvath:
+         A PC hangja
+         (Sound of the PC, hungarian)
+         Comware, Budapest, 1996
+
+         Laszlo, Jozsef:
+         Hangkartya programozas Pascal es Assembly nyelven.
+         (Soundcard programming in Pascal and Assembly languages, hungarian)
+         2nd edition
+         ComputerBooks, Budapest, 1999
+
+  Other: þ Documentation for the player code:
+           - Firelight's MOD and S3M documentation
+           - Fasttracker 2's XM description and the internal documentation
+           - XM format documentation by Matti Hamalainen.
+           - Free Pascal Compiler documentation
+         þ DOS specific:
+           - Useless Soundsystem V1.1f sources
+           - Judas Soundsystem V2.06 sources
+           - Open Cubic Player sources
+           - Gravis Ultrasound SDK
+           - Device-driver sources from the soundsystem of Chrysalis
+         þ OS/2 Warp specific:
+           - IBM OS/2 Warp Developers Toolkit
+           - Virtual Pascal for OS/2 Runtime Library sources
+           - Various DART example sources
+           - Native GUS driver development toolkit
+           - Netlabs' Sources, especially Odin.
+         þ and some other information sources...
+
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  THANKS:
+
+  For some example code, important bug report or suggestion:
+
+   Nobo/Chrysalis, TByte/Chrysalis, FcR/TheUnion!, Surgi/TerrorOpera,
+   ZeD/Remal, mrc!/Inquisition
+
+  Thanks for Zoom/Inquisition and Innocent/Inquisition for providing their
+  hardware and time for testing the new features in the player.
+
+  FreddyV/Useless, for the Useless Soundsystem. I learned a lot from it.
+
+  Cadaver and Yehar, authors of the Judas Soundsystem. Another great piece
+  of code! Learning the sources allowed me to fix a lot of bugs in my
+  player!
+
+  Aleksey V. Vaneev for the FPSound API. It's a very good sound API,
+  far better organized than ISS. I hope i can help you make it even
+  better.
+
+  Peter "Doodle" Kocsis for sending me a lot of DART-releated example code,
+  and because of his continous interrest about ISS.
+
+  #netlabs folks on irc.openprojects.net, for helping me in DART.
+
+  Laszlo "ph03n1x" Torok for answering my stupid and boring questions
+  about the Amiga and borrowing me a lot of his Amiga hardware to make
+  my life easier with the A4000T!
+
+  Matti Hamalainen (ccr/TNSP) for his cool XM-documentation, and for JSS,
+  which is a good choice if you don't like ISS.
+  (Anyway, this couldn't happen, hehe. ;)
+
+  Everyone who sent me bugfixes, bugreports or just tried out the player.
+  You are too many to list here, but you know you are, aren't you? ;)
+
+  Every musicians, who make XM's. I really like to listen your songs with
+  my player! :)
+
+   and finally to,
+
+  Florial Klaempfl and the Free Pascal Development Team, for creating
+  the best pascal compiler, which i really enjoy to use, and made all
+  of this thing possible. Thanks again for your great work!
+
+  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+  BAD NEWS:
+
+  Sorry, no more documentation this time. I'm working on it. Wait for the
+  next release...
+
