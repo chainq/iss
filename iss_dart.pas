@@ -1,54 +1,64 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_DART.PAS - OS/2 Warp DART (Direct Audio RouTines) Device Driver    ³}
-{³                  Work started     : 2001.03.02.                          ³}
-{³                  Last modification: 2001.06.29.                          ³}
-{³             OS - EMX (OS/2) only.                                        ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_DART.PAS - OS/2 Warp DART (Direct Audio RouTines) Device Driver   }
+{             OS - EMX (OS/2) only.                                       }
+
 {$INCLUDE ISS_SET.INC}
 {$MODE FPC}
 {$ASMMODE INTEL}
 
-{$HINTS OFF} { ş Enable this if you modify the source! ş }
-{$NOTES OFF} { ş Enable this if you modify the source! ş }
+{$HINTS OFF} { * Enable this if you modify the source! * }
+{$NOTES OFF} { * Enable this if you modify the source! * }
 
 Unit ISS_DART;
 
 Interface
 
-Uses ISS_Var,  { ş Uses the system variables and types ş }
-     ISS_Mix,  { ş Uses the mixer ş }
-     OS2Def,   { ş Uses OS/2 system interface ş }
-     DOSCalls, { ş Uses OS/2 DOSCALLS.DLL ş }
-     ISS_OS2M; { ş Uses OS/2 Multimedia interface ş }
+Uses ISS_Var,  { * Uses the system variables and types * }
+     ISS_Mix,  { * Uses the mixer * }
+     OS2Def,   { * Uses OS/2 system interface * }
+     DOSCalls, { * Uses OS/2 DOSCALLS.DLL * }
+     ISS_OS2M; { * Uses OS/2 Multimedia interface * }
 
 Const ISS_DARTVersionStr = '0.0.2ALPHA';
 
       ISS_DARTName     = 'DART Device Driver';
       ISS_DARTLongDesc = 'OS/2 Warp Direct Audio (DART) Device Driver';
 
-Var ISS_DARTDevice : ISS_TSoundDevice; { ş No sound Device Structure ş }
-    ISS_DARTDriver : ISS_TSoundDriver; { ş No sound Device Driver ş }
+Var ISS_DARTDevice : ISS_TSoundDevice; { * No sound Device Structure * }
+    ISS_DARTDriver : ISS_TSoundDriver; { * No sound Device Driver * }
 
 Procedure ISS_DARTDevInit;
 
 Implementation
 
-Const { ş MCI DART System Constants ş }
+Const { * MCI DART System Constants * }
       MCI_BUFFER      = 62;
       MCI_MIXSETUP    = 63;
       MCI_MAX_COMMAND = 64;
       MAX_BUFFERS     = 256;
 
-      { ş Constants for DART Callbacks ş }
+      { * Constants for DART Callbacks * }
       MIX_STREAM_ERROR    = $00000080;
       MIX_READ_COMPLETE   = $00000001;
       MIX_WRITE_COMPLETE  = $00000002;
 
-      { ş DART constants ş }
+      { * DART constants * }
       MCI_MIXSETUP_INIT      = $00010000;
       MCI_MIXSETUP_DEINIT    = $00020000;
       MCI_MIXSETUP_QUERYMODE = $00040000;
@@ -56,47 +66,47 @@ Const { ş MCI DART System Constants ş }
       MCI_ALLOCATE_MEMORY    = $00040000;
       MCI_DEALLOCATE_MEMORY  = $00080000;
 
-      MIX_BUFFER_EOS         = $00000001; { ş End-Of-Stream Flag ş }
+      MIX_BUFFER_EOS         = $00000001; { * End-Of-Stream Flag * }
 
-      { ş Additional consts ş }
+      { * Additional consts * }
       STRING_LENGTH   = 128;
 
       DARTBufSize     = 4096;
       DARTBufNum      = 4;
       DARTStopPlay    : Boolean = False;
 
-Type { ş DART structures ş }
+Type { * DART structures * }
      MCI_MIX_BUFFER = Record
-       ulStructLength : DWord;     { ş Structure length            ş }
-       pBuffer        : Pointer;   { ş Pointer to a buffer         ş }
-       ulBufferLength : DWord;     { ş Length of the buffer        ş }
-       ulFlags        : DWord;     { ş Flags                       ş }
-       ulUserParm     : DWord;     { ş User parameter              ş }
-       ulTime         : DWord;     { ş Device time in ms           ş }
+       ulStructLength : DWord;     { * Structure length            * }
+       pBuffer        : Pointer;   { * Pointer to a buffer         * }
+       ulBufferLength : DWord;     { * Length of the buffer        * }
+       ulFlags        : DWord;     { * Flags                       * }
+       ulUserParm     : DWord;     { * User parameter              * }
+       ulTime         : DWord;     { * Device time in ms           * }
        ulReserved1    : DWord;
        ulReserved2    : DWord;
       End;
      PMCI_MIX_BUFFER = ^MCI_MIX_BUFFER;
 
-     { ş DART Callbacks ş }
+     { * DART Callbacks * }
      PMIXERPROC  = Function(ulHandle : DWord; pBuffer : PMCI_MIX_BUFFER; ulFlags : DWord) : Longint; cdecl;
      PMIXEREVENT = Function(ulStatus : DWord; pBuffer : PMCI_MIX_BUFFER; ulFlags : DWord) : Longint; cdecl;
 
      MCI_MIXSETUP_PARMS = Record
-       hwndCallback    : Cardinal;   { ş Window handle                 ş }
-       ulBitsPerSample : DWord;      { ş Bits per sample               ş }
-       ulFormatTag     : DWord;      { ş Format tag                    ş }
-       ulSamplesPerSec : DWord;      { ş Sampling rate                 ş }
-       ulChannels      : DWord;      { ş Number of channels            ş }
-       ulFormatMode    : DWord;      { ş Play or record                ş }
-       ulDeviceType    : DWord;      { ş Device type                   ş }
-       ulMixHandle     : DWord;      { ş Mixer handle                  ş }
-       pmixWrite       : pMixerProc; { ş Entry point                   ş }
-       pmixRead        : pMixerProc; { ş Entry point                   ş }
-       pmixEvent       : pMixerEvent;{ ş Entry point                   ş }
-       pExtendedInfo   : Pointer;    { ş Extended information          ş }
-       ulBufferSize    : DWord;      { ş Recommended buffer size       ş }
-       ulNumBuffers    : DWord;      { ş Recommended number of buffers ş }
+       hwndCallback    : Cardinal;   { * Window handle                 * }
+       ulBitsPerSample : DWord;      { * Bits per sample               * }
+       ulFormatTag     : DWord;      { * Format tag                    * }
+       ulSamplesPerSec : DWord;      { * Sampling rate                 * }
+       ulChannels      : DWord;      { * Number of channels            * }
+       ulFormatMode    : DWord;      { * Play or record                * }
+       ulDeviceType    : DWord;      { * Device type                   * }
+       ulMixHandle     : DWord;      { * Mixer handle                  * }
+       pmixWrite       : pMixerProc; { * Entry point                   * }
+       pmixRead        : pMixerProc; { * Entry point                   * }
+       pmixEvent       : pMixerEvent;{ * Entry point                   * }
+       pExtendedInfo   : Pointer;    { * Extended information          * }
+       ulBufferSize    : DWord;      { * Recommended buffer size       * }
+       ulNumBuffers    : DWord;      { * Recommended number of buffers * }
       End;
      PMCI_MIXSETUP_PARMS = ^MCI_MIXSETUP_PARMS;
 
@@ -111,12 +121,12 @@ Type { ş DART structures ş }
        pBufList       : Pointer;
       End;
 
-Var ISS_DARTPlayFreq     : DWord;    { ş Current playing freq. ş }
-    ISS_DARTMixBufSize   : DWord;    { ş Current mixing buffer size ş }
-    ISS_DARTPeriodicCall : Pointer;  { ş Pointer to the tracker code ş }
+Var ISS_DARTPlayFreq     : DWord;    { * Current playing freq. * }
+    ISS_DARTMixBufSize   : DWord;    { * Current mixing buffer size * }
+    ISS_DARTPeriodicCall : Pointer;  { * Pointer to the tracker code * }
 
-    ISS_DARTDevTypeMul      : DWord; { ş Device type multiplier, for easy buffersize calculations ş }
-    ISS_DARTMixFinalBufSize : DWord; { ş Final buffer length ş }
+    ISS_DARTDevTypeMul      : DWord; { * Device type multiplier, for easy buffersize calculations * }
+    ISS_DARTMixFinalBufSize : DWord; { * Final buffer length * }
 
     ISS_DARTDeviceID        : Integer;              (* Amp Mixer device id     *)
     ISS_DARTBufferCount     : DWord;                (* Current file buffer     *)
@@ -130,7 +140,7 @@ Var ISS_DARTPlayFreq     : DWord;    { ş Current playing freq. ş }
 Procedure DART_ISSGetBuffer(BufferNum : Integer); Forward;
 
 
-{ ş >>> M C I  R E L E A T E D  F U N C T I O N S <<< ş }
+{ * >>> M C I  R E L E A T E D  F U N C T I O N S <<< * }
 
 Procedure MCIError(ErrorCode : DWord);
 Var StrBuffer : Array[0..STRING_LENGTH-1] Of Char;
@@ -148,24 +158,24 @@ Begin
 End;
 
 
-{ ş >>> D A R T  R E L E A T E D  F U N C T I O N S <<< ş }
+{ * >>> D A R T  R E L E A T E D  F U N C T I O N S <<< * }
 
-{ ş The address to this procedure is passed to the mixer device in the    ş }
-{ ş MIX_SETUP_PARMS structure. The mixer device then calls this procedure ş }
-{ ş when it has expended a buffer.                                        ş }
-{ ş NOTE: This is a high priority thread. Too much code here will bog the ş }
-{ ş system down.                                                          ş }
+{ * The address to this procedure is passed to the mixer device in the    * }
+{ * MIX_SETUP_PARMS structure. The mixer device then calls this procedure * }
+{ * when it has expended a buffer.                                        * }
+{ * NOTE: This is a high priority thread. Too much code here will bog the * }
+{ * system down.                                                          * }
 Function DART_SoundEvent(Status: DWord; Buffer: PMCI_MIX_BUFFER;
                          Flags: DWord) : LongInt; CDecl;
 Begin
   Case Flags Of
-    MIX_STREAM_ERROR Or MIX_READ_COMPLETE ,  { ş Error occur in device ş }
-    MIX_STREAM_ERROR Or MIX_WRITE_COMPLETE:  { ş Error occur in device ş }
+    MIX_STREAM_ERROR Or MIX_READ_COMPLETE ,  { * Error occur in device * }
+    MIX_STREAM_ERROR Or MIX_WRITE_COMPLETE:  { * Error occur in device * }
       If Status = ERROR_DEVICE_UNDERRUN Then Begin
          MixSetupParms.pmixWrite(MixSetupParms.ulMixHandle,@MixBuffers[0],
                         DARTNumBuffers );
       End;
-    MIX_WRITE_COMPLETE: Begin { ş Normal playback ş }
+    MIX_WRITE_COMPLETE: Begin { * Normal playback * }
       If (DARTStopPlay=True) Then Begin
         MCISendCommand(ISS_DARTDeviceID,MCI_STOP,MCI_WAIT,GenericParms,0);
        End Else Begin
@@ -180,13 +190,13 @@ Begin
   DART_SoundEvent:=LongInt(TRUE);
 End;
 
-{ ş Opens Amp-Mixer Device ş }
+{ * Opens Amp-Mixer Device * }
 Function DART_AmpMixOpen : Boolean;
 Var AmpOpenParms : MCI_AMP_OPEN_PARMS;
     Device       : Word;
 Begin
   Device:=2;
-  { ş Open the mixer device ş }
+  { * Open the mixer device * }
   FillChar(AmpOpenParms,SizeOf(MCI_AMP_OPEN_PARMS),0);
   AmpOpenParms.usDeviceID:=0;
   AmpOpenParms.pszDeviceType:=Pointer(DWord(MCI_DEVTYPE_AUDIO_AMPMIX+(Device Shl 16)));
@@ -197,7 +207,7 @@ Begin
   ISS_DARTDeviceID:=AmpOpenParms.usDeviceID;
 End;
 
-{ ş Deallocate memory and close the Amp-Mixer Device. ş }
+{ * Deallocate memory and close the Amp-Mixer Device. * }
 Function DART_AmpMixClose : Boolean;
 Begin
   DART_AmpMixClose:=False;
@@ -206,22 +216,22 @@ Begin
   DART_AmpMixClose:=MCICommand(ISS_DARTDeviceID,MCI_CLOSE,MCI_WAIT,GenericParms);
 End;
 
-{ ş Starts playback with sending buffers to the Amp-Mixer ş }
+{ * Starts playback with sending buffers to the Amp-Mixer * }
 Procedure DART_StartPlayBack;
 Begin
   If DARTNumBuffers > 1 then begin
     ISS_DARTBufferCount := 2;
-    { ş Write two buffers to kick off the amp mixer. ş }
+    { * Write two buffers to kick off the amp mixer. * }
     MixSetupParms.pmixWrite( MixSetupParms.ulMixHandle, @MixBuffers, 2 );
   End Else Begin
     ISS_DARTBufferCount := 1;
-    { ş Write one buffer. ş }
+    { * Write one buffer. * }
     MixSetupParms.pmixWrite( MixSetupParms.ulMixHandle, @MixBuffers, 1 );
   End;
 End;
 
 
-{ ş >>> I N T E R N A L  F U N C T I O N S <<< ş }
+{ * >>> I N T E R N A L  F U N C T I O N S <<< * }
 
 Procedure DART_ISSGetBuffer(BufferNum : Integer);
 Type Proc = Procedure;
@@ -244,8 +254,8 @@ Function DART_AmpMixerSetup(Device : ISS_TSoundDevice) : Boolean;
 Begin
   DART_AmpMixerSetup:=False;
   If ISS_DARTDeviceID=0 Then Exit;
-  { ş Set the DART_MixSetupParms data structure to match the loaded file. ş }
-  { ş This is a global that is used to setup the mixer. ş }
+  { * Set the DART_MixSetupParms data structure to match the loaded file. * }
+  { * This is a global that is used to setup the mixer. * }
 
   FillChar(MixSetupParms,SizeOf(MCI_MIXSETUP_PARMS),0);
   With Device Do Begin
@@ -257,7 +267,7 @@ Begin
       If (DevType And ISS_DevStereo)>0 Then ulChannels:=2
                                        Else ulChannels:=1;
 
-      { ş Setup the mixer for playback of wave data ş }
+      { * Setup the mixer for playback of wave data * }
       ulFormatMode:=MCI_PLAY;
       ulDeviceType:=MCI_DEVTYPE_WAVEFORM_AUDIO;
       pmixEvent   :=@DART_SoundEvent;
@@ -277,14 +287,14 @@ Begin
 
   DARTNumBuffers := DARTBufNum;
 
-  { ş Calculating Buffer Length ş }
+  { * Calculating Buffer Length * }
   BufferSize:=ISS_DARTMixFinalBufSize;
-  { ş Multiply the buffer size to be sure this will be big enough for ş }
-  { ş any kind of device... Still needs to be balanced for optimal use. ş }
+  { * Multiply the buffer size to be sure this will be big enough for * }
+  { * any kind of device... Still needs to be balanced for optimal use. * }
   BufferSize:=BufferSize*24;
 
-  { ş Set up the BufferParms data structure and allocate ş }
-  { ş device buffers from the Amp-Mixer ş }
+  { * Set up the BufferParms data structure and allocate * }
+  { * device buffers from the Amp-Mixer * }
   MixSetupParms.ulBufferSize:=BufferSize;
   With BufferParms Do Begin
     ulNumBuffers := DARTNumBuffers;
@@ -295,7 +305,7 @@ Begin
   If Not MCICommand(ISS_DARTDeviceID, MCI_BUFFER, MCI_WAIT or MCI_ALLOCATE_MEMORY,
                     BufferParms) Then Exit;
 
-  { ş Clean up buffers and set the buffer size ş }
+  { * Clean up buffers and set the buffer size * }
   For Counter:=0 To DARTNumBuffers-1 Do Begin
     With MixBuffers[Counter] Do Begin
       FillChar(pBuffer^,BufferParms.ulBufferSize,0);
@@ -305,7 +315,7 @@ Begin
 End;
 
 
-{ ş >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< ş }
+{ * >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< * }
 
 Function ISS_DARTDetect : Boolean;
 Begin
@@ -336,7 +346,7 @@ Begin
    ISS_TimerDiff:=1193180 Div 180;
    ISS_DARTMixBufSize:=ISS_DARTPlayFreq Div 180;
 
-   { ş Calculating buffer size multiplier and final buffer size ş }
+   { * Calculating buffer size multiplier and final buffer size * }
    ISS_DARTDevTypeMul:=1;
    If (DevType And ISS_DevStereo)>0 Then ISS_DARTDevTypeMul:=ISS_DARTDevTypeMul*2;
    If (DevType And ISS_Dev16Bit)>0  Then ISS_DARTDevTypeMul:=ISS_DARTDevTypeMul*2;
@@ -379,7 +389,7 @@ Begin
  {$ENDIF}
 End;
 
-{ ş This procedure assigns the device driver procedures ş }
+{ * This procedure assigns the device driver procedures * }
 Procedure ISS_DARTDevInit;
 Begin
  With ISS_DARTDriver Do Begin
@@ -400,9 +410,9 @@ Begin
  {$ENDIF}
 
  With ISS_DARTDevice Do Begin
-   DevAvail   :=True;         { ş Device is available (for detection) ş }
-   DevName    :=ISS_DARTName; { ş Name of the device ş }
-   DevType    :=ISS_DevStereo+ISS_DevSigned+ISS_Dev16Bit+ISS_DevMixed; { ş Device Type ş }
+   DevAvail   :=True;         { * Device is available (for detection) * }
+   DevName    :=ISS_DARTName; { * Name of the device * }
+   DevType    :=ISS_DevStereo+ISS_DevSigned+ISS_Dev16Bit+ISS_DevMixed; { * Device Type * }
    DevBaseport:=0;
    DevIRQ     :=0;
    DevDMA1    :=0;
@@ -415,4 +425,3 @@ End;
 
 Begin
 End.
-{ ş ISS_DART.PAS - (C) 2001 Charlie/Inquisition ş }

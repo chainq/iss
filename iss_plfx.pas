@@ -1,67 +1,76 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_PLFX.PAS - Effect handlers for the module player                   ³}
-{³                  Work started     : 1999.10.20.                          ³}
-{³                  Last modification: 2001.06.18.                          ³}
-{³             OS - Platform Independent                                    ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
 
-{ ş >>> NO UNIT HEADER, BECAUSE THIS IS AN INCLUDE FILE!!! <<< ş }
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
 
-{ ş >>> E F F E C T  I D  N U M B E R S <<< ş }
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
 
-Const { ş Effect Numbers ş }
+{ * ISS_PLFX.PAS - Effect handlers for the module player                   }
+{             OS - Platform Independent                                    }
 
-      FXPortaUp      =  1; { ş 01-1xx Portamento Up           (MOD) ş }
-      FXPortaDown    =  2; { ş 02-2xx Portamento Down         (MOD) ş }
-      FXPortaNote    =  3; { ş 03-3xx Portamento to Note      (MOD) ş }
-      FXVibrato      =  4; { ş 04-4xy Vibrato                 (MOD) ş }
-      FXPortVolSlide =  5; { ş 05-5xy Portamento+Volume Slide (MOD) ş }
-      FXVibVolSlide  =  6; { ş 06-6xy Vibrato+Volume Slide    (MOD) ş }
-      FXSetPanning   =  8; { ş 08-8xx Set Panning ($0-$80)    (MOD/DMP) ş }
-      FXSetOffset    =  9; { ş 09-9xx Set Sample Offset       (MOD) ş }
-      FXVolumeSlide  = 10; { ş 10-Axy Volume Slide            (MOD) ş }
-      FXJump         = 11; { ş 11-Bxx Jump to pattern         (MOD) ş }
-      FXSetVolume    = 12; { ş 12-Cxx Set Volume              (MOD) ş }
-      FXPatBreak     = 13; { ş 13-Dxx Pattern Break           (MOD) ş }
-                           { ş 14-Exy Extended Effects (36+x)       ş }
-      FXSetTempoBPM  = 15; { ş 15-Fxx Set Speed/Set BPM       (MOD) ş }
-      FXSetGVolume   = 16; { ş 16-Gxx Set Global Volume       (S3M/XM) ş }
-      FXGVolumeSlide = 17; { ş 17-Hxx Global Volume Slide     (XM) ş }
+{ * >>> NO UNIT HEADER, BECAUSE THIS IS AN INCLUDE FILE!!! <<< * }
 
-      FXRetrig       = 45; { ş 45-E9x Retrig Note             (MOD) ş }
-      FXFineVolSldUp = 46; { ş 46-EAx Fine Volume Slide Up    (MOD) ş }
-      FXFineVolSldDn = 47; { ş 47-EBx Fine Volume Slide Down  (MOD) ş }
+{ * >>> E F F E C T  I D  N U M B E R S <<< * }
 
-      FXCutNote      = 48; { ş 48-ECx Cut Note                (MOD) ş }
-      FXNoteDelay    = 49; { ş 49-EDx Delay Note              (MOD) ş }
+Const { * Effect Numbers * }
 
-      FXKeyOff       = 97; { ş Key Off ş }
+      FXPortaUp      =  1; { * 01-1xx Portamento Up           (MOD) * }
+      FXPortaDown    =  2; { * 02-2xx Portamento Down         (MOD) * }
+      FXPortaNote    =  3; { * 03-3xx Portamento to Note      (MOD) * }
+      FXVibrato      =  4; { * 04-4xy Vibrato                 (MOD) * }
+      FXPortVolSlide =  5; { * 05-5xy Portamento+Volume Slide (MOD) * }
+      FXVibVolSlide  =  6; { * 06-6xy Vibrato+Volume Slide    (MOD) * }
+      FXSetPanning   =  8; { * 08-8xx Set Panning ($0-$80)    (MOD/DMP) * }
+      FXSetOffset    =  9; { * 09-9xx Set Sample Offset       (MOD) * }
+      FXVolumeSlide  = 10; { * 10-Axy Volume Slide            (MOD) * }
+      FXJump         = 11; { * 11-Bxx Jump to pattern         (MOD) * }
+      FXSetVolume    = 12; { * 12-Cxx Set Volume              (MOD) * }
+      FXPatBreak     = 13; { * 13-Dxx Pattern Break           (MOD) * }
+                           { * 14-Exy Extended Effects (36+x)       * }
+      FXSetTempoBPM  = 15; { * 15-Fxx Set Speed/Set BPM       (MOD) * }
+      FXSetGVolume   = 16; { * 16-Gxx Set Global Volume       (S3M/XM) * }
+      FXGVolumeSlide = 17; { * 17-Hxx Global Volume Slide     (XM) * }
 
-      FXNoEffect     = 255; { ş No effect ş }
+      FXRetrig       = 45; { * 45-E9x Retrig Note             (MOD) * }
+      FXFineVolSldUp = 46; { * 46-EAx Fine Volume Slide Up    (MOD) * }
+      FXFineVolSldDn = 47; { * 47-EBx Fine Volume Slide Down  (MOD) * }
 
-      { ş Volume Commands ş }
+      FXCutNote      = 48; { * 48-ECx Cut Note                (MOD) * }
+      FXNoteDelay    = 49; { * 49-EDx Delay Note              (MOD) * }
 
-      FXVolSlideDn   =  1; { ş Volume Slide Down ş }
-      FXVolSlideUp   =  2; { ş Volume Slide Up ş }
-      FXVolFineSldDn =  3; { ş Fine Volume Slide Down ş }
-      FXVolFineSldUp =  4; { ş Fine Volume Slide Up ş }
-      FXVolSetVibSpd =  5; { ş Set vibrato speed ş }
-      FXVolVibrato   =  6; { ş Vibrato ş }
-      FXVolSetPan    =  7; { ş Set Panning ş }
-      FXVolPanSlideL =  8; { ş Panning Slide Left ş }
-      FXVolPanSlideR =  9; { ş Panning Slide Right ş }
-      FXVolPortaNote = 10; { ş Porta To Note ş }
+      FXKeyOff       = 97; { * Key Off * }
 
-      FXVolNoEffect  = 255; { ş No effect ş }
+      FXNoEffect     = 255; { * No effect * }
+
+      { * Volume Commands * }
+
+      FXVolSlideDn   =  1; { * Volume Slide Down * }
+      FXVolSlideUp   =  2; { * Volume Slide Up * }
+      FXVolFineSldDn =  3; { * Fine Volume Slide Down * }
+      FXVolFineSldUp =  4; { * Fine Volume Slide Up * }
+      FXVolSetVibSpd =  5; { * Set vibrato speed * }
+      FXVolVibrato   =  6; { * Vibrato * }
+      FXVolSetPan    =  7; { * Set Panning * }
+      FXVolPanSlideL =  8; { * Panning Slide Left * }
+      FXVolPanSlideR =  9; { * Panning Slide Right * }
+      FXVolPortaNote = 10; { * Porta To Note * }
+
+      FXVolNoEffect  = 255; { * No effect * }
 
 
-{ ş >>> V O L U M E  E F F E C T  S U S T A I N <<< ş }
+{ * >>> V O L U M E  E F F E C T  S U S T A I N <<< * }
 
-{ ş Command : Do Volume Slide Down ş }
+{ * Command : Do Volume Slide Down * }
 Procedure DoVVolumeSlideDn;
 Begin
  With ISS_Player^ Do Begin
@@ -73,7 +82,7 @@ Begin
   End;
 End;
 
-{ ş Command : Do Volume Slide Up ş }
+{ * Command : Do Volume Slide Up * }
 Procedure DoVVolumeSlideUp;
 Begin
  With ISS_Player^ Do Begin
@@ -86,7 +95,7 @@ Begin
 End;
 
 
-{ ş Command : Do Panning Slide Left ş }
+{ * Command : Do Panning Slide Left * }
 Procedure DoVPanningSlideLeft;
 Begin
  With ISS_Player^ Do Begin
@@ -98,7 +107,7 @@ Begin
   End;
 End;
 
-{ ş Command : Do Panning Slide Right ş }
+{ * Command : Do Panning Slide Right * }
 Procedure DoVPanningSlideRight;
 Begin
  With ISS_Player^ Do Begin
@@ -110,9 +119,9 @@ Begin
   End;
 End;
 
-{ ş >>> V O L U M E  E F F E C T  P R O C E S S I N G <<< ş }
+{ * >>> V O L U M E  E F F E C T  P R O C E S S I N G <<< * }
 
-{ ş Command : Process Volume Slide Up or Down ş }
+{ * Command : Process Volume Slide Up or Down * }
 Procedure ProcVVolumeSlide(VolToSlide : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -122,7 +131,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Volume Panning ş }
+{ * Command : Process Volume Panning * }
 Procedure ProcVSetPanning(PanToSet : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -133,7 +142,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Volume Panning Slide ş }
+{ * Command : Process Volume Panning Slide * }
 Procedure ProcVPanningSlide(PanToSlide : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -144,9 +153,9 @@ Begin
 End;
 
 
-{ ş >>> E F F E C T  S U S T A I N <<< ş }
+{ * >>> E F F E C T  S U S T A I N <<< * }
 
-{ ş Command : Do Portamento Up   ş }
+{ * Command : Do Portamento Up   * }
 Procedure DoPortaUp;
 Var Buf1,Buf2 : DWord;
 Begin
@@ -162,7 +171,7 @@ Begin
   End;
 End;
 
-{ ş Command : Do Portamento Down ş }
+{ * Command : Do Portamento Down * }
 Procedure DoPortaDown;
 Var Buf1,Buf2 : DWord;
 Begin
@@ -178,7 +187,7 @@ Begin
   End;
 End;
 
-{ ş Command : Do Porta To Note   ş }
+{ * Command : Do Porta To Note   * }
 Procedure DoPortaNote;
 Var Buf1,Buf2,Buf3 : DWord;
 Begin
@@ -210,7 +219,7 @@ Begin
   End;
 End;
 
-{ ş Command : Do Vibrato ş }
+{ * Command : Do Vibrato * }
 Procedure DoVibrato;
 Var BufPeriod   : DWord;
     BufVibValue : Byte;
@@ -231,7 +240,7 @@ Begin
   End;
 End;
 
-{ ş Command : Do Volume Slide ş }
+{ * Command : Do Volume Slide * }
 Procedure DoVolumeSlide;
 Begin
  With ISS_Player^ Do Begin
@@ -247,7 +256,7 @@ Begin
   End;
 End;
 
-{ ş Command : Do Retrig  ş }
+{ * Command : Do Retrig  * }
 Procedure DoRetrig;
 Begin
  With ISS_Player^ Do Begin
@@ -256,28 +265,28 @@ Begin
      If ChFXTick=0 Then Exit;
 
      If (TickCnt Mod ChFXTick)=0 Then Begin
-       ISS_SetSampleOffset(CChannel,0); { ş Retrig ş }
+       ISS_SetSampleOffset(CChannel,0); { * Retrig * }
       End;
 
     End;
   End;
 End;
 
-{ ş Command : Do Portamento+VolumeSlide ş }
+{ * Command : Do Portamento+VolumeSlide * }
 Procedure DoPortVolSlide;
 Begin
  DoPortaNote;
  DoVolumeSlide;
 End;
 
-{ ş Command : Do Vibrato+VolumeSlide ş }
+{ * Command : Do Vibrato+VolumeSlide * }
 Procedure DoVibVolSlide;
 Begin
  DoVibrato;
  DoVolumeSlide;
 End;
 
-{ ş Command : Do Global Volume Slide ş }
+{ * Command : Do Global Volume Slide * }
 Procedure DoGVolumeSlide;
 Var BufVol : LongInt;
 Begin
@@ -296,7 +305,7 @@ Begin
 End;
 
 
-{ ş Command : Cut Note ş }
+{ * Command : Cut Note * }
 Procedure DoCutNote;
 Begin
  With ISS_Player^ Do Begin
@@ -304,20 +313,20 @@ Begin
 
      If TickCnt=ChFXTick Then Begin
        ChVolume:=0;
-       ISS_SetVolume(CChannel,ChVolume); { ş Cut Note ş }
+       ISS_SetVolume(CChannel,ChVolume); { * Cut Note * }
       End;
 
     End;
   End;
 End;
 
-{ ş Command : Do Note Delay ş }
+{ * Command : Do Note Delay * }
 Procedure DoNoteDelay;
 Begin
  With ISS_Player^ Do Begin
    With Channels[CChannel] Do Begin
 
-     { ş If Tick counter reached specified value, we start the note ş }
+     { * If Tick counter reached specified value, we start the note * }
      If TickCnt=ChFXTick Then Begin
        CNote :=ChRNote;
        CInstr:=ChRInstr;
@@ -331,9 +340,9 @@ Begin
 End;
 
 
-{ ş >>> E F F E C T  P R O C E S S I N G <<< ş }
+{ * >>> E F F E C T  P R O C E S S I N G <<< * }
 
-{ ş Command : Process Portamento Up ş }
+{ * Command : Process Portamento Up * }
 Procedure ProcPortaUp(PortaTo : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -341,7 +350,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Portamento Down ş }
+{ * Command : Process Portamento Down * }
 Procedure ProcPortaDown(PortaTo : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -349,7 +358,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Porta To Note ş }
+{ * Command : Process Porta To Note * }
 Procedure ProcPortaNote(PortaTo : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -362,7 +371,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Vibrato ş }
+{ * Command : Process Vibrato * }
 Procedure ProcVibrato(VibValues : Word);
 Var VibSpeed : Byte;
     VibDepth : Byte;
@@ -373,23 +382,23 @@ Begin
      VibSpeed:=(VibValues And $0F0) Shr 4;
      VibDepth:=VibValues And $00F;
 
-     { ş If a parameter is zero, we're using previous values ş }
+     { * If a parameter is zero, we're using previous values * }
      If VibSpeed>0 Then ChVibSpeed:=VibSpeed;
      If VibDepth>0 Then ChVibDepth:=VibDepth;
 
-     { ş If previous command wasn't vibrato and we're in retrigger ş }
-     { ş mode, then retrig vibrato ş }
+     { * If previous command wasn't vibrato and we're in retrigger * }
+     { * mode, then retrig vibrato * }
      If (ChFXType<>FXVibrato) And (ChFXType<>FXVibVolSlide) And
         (ChVibWaveForm<4) Then ChVibPosition:=0;
 
-     { ş Vibrato processed in the head tick too ş }
+     { * Vibrato processed in the head tick too * }
      DoVibrato;
 
     End;
   End;
 End;
 
-{ ş Command : Process Set Panning ş }
+{ * Command : Process Set Panning * }
 Procedure ProcSetPanning(PanToSet : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -397,24 +406,24 @@ Begin
   End;
 End;
 
-{ ş Command : Process Sample Offset ş }
+{ * Command : Process Sample Offset * }
 Procedure ProcSetSampOffset(OffsetToSet : Word);
 Begin
  With ISS_Player^ Do Begin
    With Channels[CChannel] Do Begin
 
-     { ş Store offset if it it's not zero ş }
+     { * Store offset if it it's not zero * }
      If OffsetToSet<>0 Then ChSampleOffset:=OffsetToSet;
 
-     { ş Set the sample offset. If the current parameter is zero, we ş }
-     { ş using the previous value ş }
+     { * Set the sample offset. If the current parameter is zero, we * }
+     { * using the previous value * }
      If CNote<>0 Then ISS_SetSampleOffset(CChannel,ChSampleOffset * $100);
 
     End;
   End;
 End;
 
-{ ş Command : Process Volume Slide ş }
+{ * Command : Process Volume Slide * }
 Procedure ProcVolumeSlide(VolToSlide : Word);
 Var VolSlideUp : Byte;
     VolSlideDn : Byte;
@@ -425,16 +434,16 @@ Begin
      VolSlideUp:=(VolToSlide And $0F0) Shr 4;
      VolSlideDn:=VolToSlide And $00F;
 
-     { ş Up & Downslide can't performed together, so we do nothing ş }
-     { ş in this case ş }
+     { * Up & Downslide can't performed together, so we do nothing * }
+     { * in this case * }
      If (VolSlideUp>0) And (VolSlideDn>0) Then Exit;
 
-     { ş Upslide? ş }
+     { * Upslide? * }
      If (VolSlideUp>0) Then Begin
        ChVolSlideData:=VolSlideUp;
       End;
 
-     { ş Downslide? ş }
+     { * Downslide? * }
      If (VolSlideDn>0) Then Begin
        ChVolSlideData:=0-VolSlideDn;
       End;
@@ -443,7 +452,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Jump To Pattern ş }
+{ * Command : Process Jump To Pattern * }
 Procedure ProcJump(OrderToJump : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -455,7 +464,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Set Volume ş }
+{ * Command : Process Set Volume * }
 Procedure ProcSetVolume(VolumeToSet : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -464,7 +473,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Pattern Break ş }
+{ * Command : Process Pattern Break * }
 Procedure ProcPatBreak(RowToBreak : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -477,21 +486,21 @@ Begin
   End;
 End;
 
-{ ş Command : Process Portamento+VolumeSlide ş }
+{ * Command : Process Portamento+VolumeSlide * }
 Procedure ProcPortVolSlide(VolToSlide : Word);
 Begin
  ProcPortaNote(0);
  ProcVolumeSlide(VolToSlide);
 End;
 
-{ ş Command : Process Vibrato+VolumeSlide ş }
+{ * Command : Process Vibrato+VolumeSlide * }
 Procedure ProcVibVolSlide(VolToSlide : Word);
 Begin
  ProcVibrato(0);
  ProcVolumeSlide(VolToSlide);
 End;
 
-{ ş Command : Process Set BPM ş }
+{ * Command : Process Set BPM * }
 Procedure ProcSetBPM(BPMToSet : Word);
 Begin
  If BPMToSet=0 Then Exit;
@@ -501,21 +510,21 @@ Begin
   End;
 End;
 
-{ ş Command : Process Set Tempo/BPM ş }
+{ * Command : Process Set Tempo/BPM * }
 Procedure ProcSetTempo_BPM(TempoToSet : Word);
 Begin
  If TempoToSet>=$20 Then Begin ProcSetBPM(TempoToSet); Exit; End;
  ISS_Player^.Speed:=TempoToSet;
 End;
 
-{ ş Command : Process Set Global Volume ş }
+{ * Command : Process Set Global Volume * }
 Procedure ProcSetGlobalVolume(VolToSet : Word);
 Begin
  If VolToSet>64 Then ISS_GlobalPlVolume:=64
                 Else ISS_GlobalPlVolume:=VolToSet;
 End;
 
-{ ş Command : Process Global Volume Slide ş }
+{ * Command : Process Global Volume Slide * }
 Procedure ProcGVolumeSlide(VolToSlide : Word);
 Var VolSlideUp : Byte;
     VolSlideDn : Byte;
@@ -526,16 +535,16 @@ Begin
      VolSlideUp:=(VolToSlide And $0F0) Shr 4;
      VolSlideDn:=VolToSlide And $00F;
 
-     { ş Up & Downslide can't performed together, so we do nothing ş }
-     { ş in this case ş }
+     { * Up & Downslide can't performed together, so we do nothing * }
+     { * in this case * }
      If (VolSlideUp>0) And (VolSlideDn>0) Then Exit;
 
-     { ş Upslide? ş }
+     { * Upslide? * }
      If (VolSlideUp>0) Then Begin
        ChGVolSlideData:=VolSlideUp;
       End;
 
-     { ş Downslide? ş }
+     { * Downslide? * }
      If (VolSlideDn>0) Then Begin
        ChGVolSlideData:=0-VolSlideDn;
       End;
@@ -544,7 +553,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Fine Volume Slide Up ş }
+{ * Command : Process Fine Volume Slide Up * }
 Procedure ProcFineVolSldUp(VolToAdd : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -556,7 +565,7 @@ Begin
   End;
 End;
 
-{ ş Command : Process Fine Volume Slide Down ş }
+{ * Command : Process Fine Volume Slide Down * }
 Procedure ProcFineVolSldDn(VolToSub : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -568,7 +577,7 @@ Begin
   End;
 End;
 
-{ ş Command : Cut Note ş }
+{ * Command : Cut Note * }
 Procedure ProcCutNote(TickUntilCut : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -576,7 +585,7 @@ Begin
   End;
 End;
 
-{ ş Command : Note Delay ş }
+{ * Command : Note Delay * }
 Procedure ProcNoteDelay(TickUntilNote : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -590,7 +599,7 @@ Begin
  DoNoteDelay;
 End;
 
-{ ş Process Tick Based Commands (NoteCut, etc) ş }
+{ * Process Tick Based Commands (NoteCut, etc) * }
 Procedure ProcTick(Parameter : Word);
 Begin
  With ISS_Player^ Do Begin
@@ -599,7 +608,7 @@ Begin
   End;
 End;
 
-{ ş >>> T H E  D U M M Y  P R O C E D U R E S <<< ş }
+{ * >>> T H E  D U M M Y  P R O C E D U R E S <<< * }
 
 Procedure ProcDummy(Parameter : Word);
 Begin
@@ -609,88 +618,82 @@ Procedure DoDummy;
 Begin
 End;
 
-{ ş >>> E F F E C T  P R O C E D U R E  T A B L E S <<< ş }
+{ * >>> E F F E C T  P R O C E D U R E  T A B L E S <<< * }
 
 Type  TFXHandler = Record
         Proc : Procedure(FXParam : Word);
         Sust : Procedure;
        End;
 
-Const { ş The processing table ş }
+Const { * The processing table * }
       FXProcs : Array[0..51] Of TFXHandler = (
 
- { ş Normal effects ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 00-0xx Arpeggio               !(MOD) ş }
- (Proc:@ProcPortaUp;        Sust:@DoPortaUp),         { ş 01-1xx Portamento Up           (MOD) ş }
- (Proc:@ProcPortaDown;      Sust:@DoPortaDown),       { ş 02-2xx Portamento Down         (MOD) ş }
- (Proc:@ProcPortaNote;      Sust:@DoPortaNote),       { ş 03-3xx Portamento to Note      (MOD) ş }
- (Proc:@ProcVibrato;        Sust:@DoVibrato),         { ş 04-4xy Vibrato                 (MOD) ş }
- (Proc:@ProcPortVolSlide;   Sust:@DoPortVolSlide),    { ş 05-5xy Portamento+Volume Slide (MOD) ş }
- (Proc:@ProcVibVolSlide;    Sust:@DoVibVolSlide),     { ş 06-6xy Vibrato+Volume Slide    (MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 07-7xy Tremolo                !(MOD) ş }
- (Proc:@ProcSetPanning;     Sust:@DoDummy),           { ş 08-8xx Set Panning ($0-$80)    (MOD/DMP) ş }
- (Proc:@ProcSetSampOffset;  Sust:@DoDummy),           { ş 09-9xx Set Sample Offset       (MOD) ş }
- (Proc:@ProcVolumeSlide;    Sust:@DoVolumeSlide),     { ş 10-Axy Volume Slide            (MOD) ş }
- (Proc:@ProcJump;           Sust:@DoDummy),           { ş 11-Bxx Jump to pattern         (MOD) ş }
- (Proc:@ProcSetVolume;      Sust:@DoDummy),           { ş 12-Cxx Set Volume              (MOD) ş }
- (Proc:@ProcPatBreak;       Sust:@DoDummy),           { ş 13-Dxx Pattern Break           (MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 14-Exy Extended Effects (36+x)       ş }
- (Proc:@ProcSetTempo_BPM;   Sust:@DoDummy),           { ş 15-Fxx Set Speed/Set BPM       (MOD) ş }
- (Proc:@ProcSetGlobalVolume;Sust:@DoDummy),           { ş 16-Gxx Set Global Volume       (S3M/XM) ş }
- (Proc:@ProcGVolumeSlide;   Sust:@DoGVolumeSlide),    { ş 17-Hxx Global Volume Slide     (XM)  ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 18-I                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 19-J                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 20-Kxx Key Off (after xx tick)!(XM)  ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 21-Lxx Set Envelope Pos       !(XM)  ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 22-M                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 23-N                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 24-O                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 25-Pxx Panning Slide          !(XM)  ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 26-Q                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 27-Rxy Multi Retrig Note      !(S3M) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 28-S                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 29-Txy Tremor                 !(STM) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 30-U                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 31-V                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 32-W                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 33-Xxy Extra Fine Portamento  !(S3M) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 31-Y                                 ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 32-Z                                 ş }
- { ş Extended effects ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 36-E0x Set AMiGA Filter       #(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 37-E1x Fine Portamento Up     !(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 38-E1x Fine Portamento Down   !(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 39-E3x Glissando Control      #(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 40-E4x Set Vibrato Waveform   !(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 41-E5x Set Finetune           !(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 42-E6x Pattern Loop           !(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 43-E7x Set Tremolo WaveForm   !(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 44-E8x Unused/Set Panning     !(MOD/S3M) ş }
- (Proc:@ProcTick;           Sust:@DoRetrig),          { ş 45-E9x Retrig Note             (MOD) ş }
- (Proc:@ProcFineVolSldUp;   Sust:@DoDummy),           { ş 46-EAx Fine Volume Slide Up    (MOD) ş }
- (Proc:@ProcFineVolSldDn;   Sust:@DoDummy),           { ş 47-EAx Fine Volume Slide Down  (MOD) ş }
- (Proc:@ProcCutNote;        Sust:@DoCutNote),         { ş 48-ECx Cut Note                (MOD) ş }
- (Proc:@ProcNoteDelay;      Sust:@DoNoteDelay),       { ş 49-EDx Delay Note              (MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { ş 50-EEx Pattern Delay          !(MOD) ş }
- (Proc:@ProcDummy;          Sust:@DoDummy));          { ş 51-EFx Invert Loop, Synchro   #(MOD) ş }
+ { * Normal effects * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 00-0xx Arpeggio               !(MOD) * }
+ (Proc:@ProcPortaUp;        Sust:@DoPortaUp),         { * 01-1xx Portamento Up           (MOD) * }
+ (Proc:@ProcPortaDown;      Sust:@DoPortaDown),       { * 02-2xx Portamento Down         (MOD) * }
+ (Proc:@ProcPortaNote;      Sust:@DoPortaNote),       { * 03-3xx Portamento to Note      (MOD) * }
+ (Proc:@ProcVibrato;        Sust:@DoVibrato),         { * 04-4xy Vibrato                 (MOD) * }
+ (Proc:@ProcPortVolSlide;   Sust:@DoPortVolSlide),    { * 05-5xy Portamento+Volume Slide (MOD) * }
+ (Proc:@ProcVibVolSlide;    Sust:@DoVibVolSlide),     { * 06-6xy Vibrato+Volume Slide    (MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 07-7xy Tremolo                !(MOD) * }
+ (Proc:@ProcSetPanning;     Sust:@DoDummy),           { * 08-8xx Set Panning ($0-$80)    (MOD/DMP) * }
+ (Proc:@ProcSetSampOffset;  Sust:@DoDummy),           { * 09-9xx Set Sample Offset       (MOD) * }
+ (Proc:@ProcVolumeSlide;    Sust:@DoVolumeSlide),     { * 10-Axy Volume Slide            (MOD) * }
+ (Proc:@ProcJump;           Sust:@DoDummy),           { * 11-Bxx Jump to pattern         (MOD) * }
+ (Proc:@ProcSetVolume;      Sust:@DoDummy),           { * 12-Cxx Set Volume              (MOD) * }
+ (Proc:@ProcPatBreak;       Sust:@DoDummy),           { * 13-Dxx Pattern Break           (MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 14-Exy Extended Effects (36+x)       * }
+ (Proc:@ProcSetTempo_BPM;   Sust:@DoDummy),           { * 15-Fxx Set Speed/Set BPM       (MOD) * }
+ (Proc:@ProcSetGlobalVolume;Sust:@DoDummy),           { * 16-Gxx Set Global Volume       (S3M/XM) * }
+ (Proc:@ProcGVolumeSlide;   Sust:@DoGVolumeSlide),    { * 17-Hxx Global Volume Slide     (XM)  * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 18-I                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 19-J                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 20-Kxx Key Off (after xx tick)!(XM)  * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 21-Lxx Set Envelope Pos       !(XM)  * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 22-M                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 23-N                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 24-O                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 25-Pxx Panning Slide          !(XM)  * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 26-Q                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 27-Rxy Multi Retrig Note      !(S3M) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 28-S                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 29-Txy Tremor                 !(STM) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 30-U                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 31-V                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 32-W                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 33-Xxy Extra Fine Portamento  !(S3M) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 31-Y                                 * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 32-Z                                 * }
+ { * Extended effects * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 36-E0x Set AMiGA Filter       #(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 37-E1x Fine Portamento Up     !(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 38-E1x Fine Portamento Down   !(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 39-E3x Glissando Control      #(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 40-E4x Set Vibrato Waveform   !(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 41-E5x Set Finetune           !(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 42-E6x Pattern Loop           !(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 43-E7x Set Tremolo WaveForm   !(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 44-E8x Unused/Set Panning     !(MOD/S3M) * }
+ (Proc:@ProcTick;           Sust:@DoRetrig),          { * 45-E9x Retrig Note             (MOD) * }
+ (Proc:@ProcFineVolSldUp;   Sust:@DoDummy),           { * 46-EAx Fine Volume Slide Up    (MOD) * }
+ (Proc:@ProcFineVolSldDn;   Sust:@DoDummy),           { * 47-EAx Fine Volume Slide Down  (MOD) * }
+ (Proc:@ProcCutNote;        Sust:@DoCutNote),         { * 48-ECx Cut Note                (MOD) * }
+ (Proc:@ProcNoteDelay;      Sust:@DoNoteDelay),       { * 49-EDx Delay Note              (MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),           { * 50-EEx Pattern Delay          !(MOD) * }
+ (Proc:@ProcDummy;          Sust:@DoDummy));          { * 51-EFx Invert Loop, Synchro   #(MOD) * }
 
-Const { ş The volume effect processing table ş }
+Const { * The volume effect processing table * }
       FXVolProcs : Array[0..10] Of TFXHandler = (
 
- (Proc:@ProcDummy;          Sust:@DoDummy),              { ş 0 - ş }
- (Proc:@ProcVVolumeSlide;   Sust:@DoVVolumeSlideDn),     { ş 1 - Volume Slide Down        ş }
- (Proc:@ProcVVolumeSlide;   Sust:@DoVVolumeSlideUp),     { ş 2 - Volume Slide Up          ş }
- (Proc:@ProcFineVolSldDn;   Sust:@DoDummy),              { ş 3 - Fine Volume Slide Down   ş }
- (Proc:@ProcFineVolSldUp;   Sust:@DoDummy),              { ş 4 - Fine Volume Slide Up     ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),              { ş 5 - Set vibrato speed      ! ş }
- (Proc:@ProcDummy;          Sust:@DoDummy),              { ş 6 - Vibrato                ! ş }
- (Proc:@ProcVSetPanning;    Sust:@DoDummy),              { ş 7 - Set Panning              ş }
- (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideLeft),  { ş 8 - Panning Slide Left     ! ş }
- (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideRight), { ş 9 - Panning Slide Right    ! ş }
- (Proc:@ProcDummy;          Sust:@DoDummy));             { ş A - Porta to Note          ! ş }
-
-{ ş ISS_PLFX.PAS - (C) 1999-2001 Charlie/Inquisition ş }
-
-
-
-
+ (Proc:@ProcDummy;          Sust:@DoDummy),              { * 0 - * }
+ (Proc:@ProcVVolumeSlide;   Sust:@DoVVolumeSlideDn),     { * 1 - Volume Slide Down        * }
+ (Proc:@ProcVVolumeSlide;   Sust:@DoVVolumeSlideUp),     { * 2 - Volume Slide Up          * }
+ (Proc:@ProcFineVolSldDn;   Sust:@DoDummy),              { * 3 - Fine Volume Slide Down   * }
+ (Proc:@ProcFineVolSldUp;   Sust:@DoDummy),              { * 4 - Fine Volume Slide Up     * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),              { * 5 - Set vibrato speed      ! * }
+ (Proc:@ProcDummy;          Sust:@DoDummy),              { * 6 - Vibrato                ! * }
+ (Proc:@ProcVSetPanning;    Sust:@DoDummy),              { * 7 - Set Panning              * }
+ (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideLeft),  { * 8 - Panning Slide Left     ! * }
+ (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideRight), { * 9 - Panning Slide Right    ! * }
+ (Proc:@ProcDummy;          Sust:@DoDummy));             { * A - Porta to Note          ! * }

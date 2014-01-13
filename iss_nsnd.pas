@@ -1,28 +1,38 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_NSND.PAS - No Sound Device Driver                                  ³}
-{³                  Work started     : 1999.05.26.                          ³}
-{³                  Last modification: 2001.06.18.                          ³}
-{³             OS - GO32V2 only.                                            ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_NSND.PAS - No Sound Device Driver                                 }
+{             OS - GO32V2 only.                                           }
+
 {$INCLUDE ISS_SET.INC}
 {$MODE FPC}
 {$ASMMODE INTEL}
 
-{$HINTS OFF} { ş Enable this if you modify the source! ş }
-{$NOTES OFF} { ş Enable this if you modify the source! ş }
+{$HINTS OFF} { * Enable this if you modify the source! * }
+{$NOTES OFF} { * Enable this if you modify the source! * }
 
 Unit ISS_NSND;
 
 Interface
 
-Uses ISS_Var, { ş Uses the system variables and types ş }
-     ISS_Tim  { ş Uses the timer services ş }
+Uses ISS_Var, { * Uses the system variables and types * }
+     ISS_Tim  { * Uses the timer services * }
      {$IFDEF _ISS_NSND_SLOWMODE_}
-      ,ISS_Mix { ş Uses the mixer in slow mode ş }
+      ,ISS_Mix { * Uses the mixer in slow mode * }
      {$ENDIF}
      ;
 
@@ -36,16 +46,16 @@ Const ISS_NSNDVersionStr = '0.8.5';
        ISS_NSNDLongDesc = 'No Sound Device Driver';
       {$ENDIF}
 
-Var ISS_NSNDDevice : ISS_TSoundDevice; { ş No sound Device Structure ş }
-    ISS_NSNDDriver : ISS_TSoundDriver; { ş No sound Device Driver ş }
+Var ISS_NSNDDevice : ISS_TSoundDevice; { * No sound Device Structure * }
+    ISS_NSNDDriver : ISS_TSoundDriver; { * No sound Device Driver * }
 
 Procedure ISS_NSNDDevInit;
 
 Implementation
 
 {$IFDEF _ISS_NSND_SLOWMODE_}
- Var ISS_NSNDPlayFreq     : DWord;  { ş Current playing (not mixing!) freq. ş }
-     ISS_NSNDMixBufSize   : DWord;   { ş Current mixing buffer size ş }
+ Var ISS_NSNDPlayFreq     : DWord;  { * Current playing (not mixing!) freq. * }
+     ISS_NSNDMixBufSize   : DWord;   { * Current mixing buffer size * }
 {$ENDIF}
 
 Function ISS_NSNDDetect : Boolean;
@@ -136,39 +146,39 @@ Begin
 End;
 
 {$IFNDEF _ISS_NSND_SLOWMODE_}
- Procedure ISS_NSNDUpdateOutput_Fast; { ş Updates the sound output in fast modeş }
+ Procedure ISS_NSNDUpdateOutput_Fast; { * Updates the sound output in fast mode* }
  Var ChannelCounter : Word;
  Begin
-  { ş We tell the player, that we did everything it requested... :) ş }
+  { * We tell the player, that we did everything it requested... :) * }
   For ChannelCounter:=0 To ISS_ActiveSSChannels-1 Do Begin
     With ISS_VirtualChannels^[ChannelCounter] Do Begin
 
-      { ş Stop a Channel ? ş }
+      { * Stop a Channel ? * }
       If (VChControl And ISS_CCStop)>0 Then Begin
         Dec(VChControl,ISS_CCStop);
        End;
 
-      { ş Start a Sample ? ş }
+      { * Start a Sample ? * }
       If (VChControl And ISS_CCSample)>0 Then Begin
         Dec(VChControl,ISS_CCSample);
        End;
 
-      { ş Change Period ? ş }
+      { * Change Period ? * }
       If (VChControl And ISS_CCPeriod)>0 Then Begin
         Dec(VChControl,ISS_CCPeriod);
        End;
 
-      { ş Change Volume ? ş }
+      { * Change Volume ? * }
       If (VChControl And ISS_CCVolume)>0 Then Begin
         Dec(VChControl,ISS_CCVolume);
        End;
 
-      { ş Change Panning ? ş }
+      { * Change Panning ? * }
       If (VChControl And ISS_CCPanning)>0 Then Begin
         Dec(VChControl,ISS_CCPanning);
        End;
 
-      { ş Still channel Active ? ş }
+      { * Still channel Active ? * }
       If (VChControl And ISS_CCActive)>0 Then Begin
         Dec(VChControl,ISS_CCActive);
        End;
@@ -179,7 +189,7 @@ End;
  End;
 {$ENDIF}
 
-{ ş This procedure assigns the device driver procedures ş }
+{ * This procedure assigns the device driver procedures * }
 Procedure ISS_NSNDDevInit;
 Begin
  With ISS_NSNDDriver Do Begin
@@ -205,11 +215,11 @@ Begin
   WriteLn('DEV_INIT: Device - ',ISS_NSNDLongDesc,' ',ISS_NSNDVersionStr);
  {$ENDIF}
 
- { ş No sound always available, so we simply assign 'hardware' parameters ş }
+ { * No sound always available, so we simply assign 'hardware' parameters * }
  With ISS_NSNDDevice Do Begin
-   DevAvail   :=True;         { ş Device is available (for detection) ş }
-   DevName    :=ISS_NSNDName; { ş Name of the device ş }
-   DevType    :=ISS_DevMono+ISS_DevSigned+ISS_Dev16Bit+ISS_DevMixed; { ş Device Type ş }
+   DevAvail   :=True;         { * Device is available (for detection) * }
+   DevName    :=ISS_NSNDName; { * Name of the device * }
+   DevType    :=ISS_DevMono+ISS_DevSigned+ISS_Dev16Bit+ISS_DevMixed; { * Device Type * }
    DevBaseport:=0;
    DevIRQ     :=0;
    DevDMA1    :=0;
@@ -222,4 +232,3 @@ End;
 
 Begin
 End.
-{ ş ISS_NSND.PAS - (C) 1999-2001 Charlie/Inquisition ş }

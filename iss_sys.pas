@@ -1,45 +1,55 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_SYS .PAS - "Heart of the Tiger" :-)                                ³}
-{³                  Work started     : 1999.05.26.                          ³}
-{³                  Last modification: 2001.06.18.                          ³}
-{³             OS - GO32V2,EMX                                              ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_SYS .PAS - "Heart of the Tiger" :-)                               }
+{             OS - GO32V2,EMX                                             }
+
 {$INCLUDE ISS_SET.INC}
 {$MODE FPC}
 Unit ISS_Sys;
 
 Interface
 
-Uses ISS_Var,  { ş Uses the system variables and types ş }
-     ISS_Load  { ş Uses the file-loader functions ş }
+Uses ISS_Var,  { * Uses the system variables and types * }
+     ISS_Load  { * Uses the file-loader functions * }
      {$IFDEF _ISS_GUS_INCLUDE_}
-      ,ISS_GUS { ş Include GUS ş }
+      ,ISS_GUS { * Include GUS * }
      {$ENDIF}
      {$IFDEF _ISS_SB_INCLUDE_}
-      ,ISS_SB { ş Include SB ş }
+      ,ISS_SB { * Include SB * }
      {$ENDIF}
      {$IFDEF _ISS_NSND_INCLUDE_}
-      ,ISS_NSND { ş Include Nosound ş }
+      ,ISS_NSND { * Include Nosound * }
      {$ENDIF}
      {$IFDEF _ISS_GUSNATIVE_INCLUDE_}
-      ,ISS_GUS2 { ş Include OS/2 native GF1/Interwave driver ş }
+      ,ISS_GUS2 { * Include OS/2 native GF1/Interwave driver * }
      {$ENDIF}
      {$IFDEF _ISS_DART_INCLUDE_}
-      ,ISS_DART { ş Include OS/2 Warp DART API driver ş }
+      ,ISS_DART { * Include OS/2 Warp DART API driver * }
      {$ENDIF}
      {$IFDEF _ISS_DSOUND_INCLUDE_}
-      ,ISS_DSND { ş Include Win32 DirectSound API driver ş }
+      ,ISS_DSND { * Include Win32 DirectSound API driver * }
      {$ENDIF}
      {$IFDEF _ISS_OSS_INCLUDE_}
-      ,ISS_OSS  { ş Include Linux OSS API driver ş }
+      ,ISS_OSS  { * Include Linux OSS API driver * }
      {$ENDIF}
      ;
 
-{ ş System Initalization ş }
+{ * System Initalization * }
 Function ISS_InitSystem : Boolean;
 Function ISS_InitDevices : Boolean;
 
@@ -55,14 +65,14 @@ Function ISS_FreeSample(Sample : ISS_PSample) : Boolean;
 Function ISS_StartOutput(PeriodicProc : Pointer) : Boolean;
 Function ISS_StopOutput : Boolean;
 
-{ ş Period Control ş }
+{ * Period Control * }
 Function ISS_GetPeriod(Channel : Word) : DWord;
 Function ISS_SetPeriod(Channel : Word; Period : Word) : Boolean;
 Function ISS_ChGetNotePeriod(Channel : DWord; Note : DWord) : DWord;
 Function ISS_SmpGetNotePeriod(SampleAddress : ISS_PSample;
                               Note          : DWord) : DWord;
 
-{ ş Volume & Panning Control ş }
+{ * Volume & Panning Control * }
 Function ISS_GetGlobalVolume : DWord;
 Function ISS_SetGlobalVolume(Volume : Byte) : Boolean;
 Function ISS_SetVolume(Channel : Word; Volume : Byte) : Boolean;
@@ -70,25 +80,25 @@ Function ISS_GetVolume(Channel : Word) : DWord;
 Function ISS_SetPanning(Channel : Word; Panning : Byte) : Boolean;
 Function ISS_GetPanning(Channel : Word) : DWord;
 
-{ ş Instrument Control ş }
+{ * Instrument Control * }
 Procedure ISS_InitInstrument(Channel : Word);
 Function  ISS_StartInstrument(Channel : Word; Instr : Word; Note : Word) : Boolean;
 Procedure ISS_UpdateInstruments;
 Procedure ISS_KeyOff(Channel : Word);
 
-{ ş Misc. ş }
-Procedure ISS_UpdateOutput; { ş Updates the output device.    ş }
-                            { ş  - Volume calc.               ş }
-                            { ş  - Calls the low-level driver ş }
+{ * Misc. * }
+Procedure ISS_UpdateOutput; { * Updates the output device.    * }
+                            { *  - Volume calc.               * }
+                            { *  - Calls the low-level driver * }
 
 Procedure ISS_SetSampleOffset(Channel : DWord; SampOffset : DWord);
 
-Var ISS_SystemOK       : Boolean; { ş True if the system is initiated and ş }
-                                  { ş everything (seems:) OK. ş }
+Var ISS_SystemOK       : Boolean; { * True if the system is initiated and * }
+                                  { * everything (seems:) OK. * }
 
-    ISS_DevicesOK      : Boolean; { ş True if there is an useable device ş }
-    ISS_DevicesNum     : DWord;   { ş Number of devices ş }
-    ISS_SoundDeviceNum : DWord;   { ş Number of selected device ş }
+    ISS_DevicesOK      : Boolean; { * True if there is an useable device * }
+    ISS_DevicesNum     : DWord;   { * Number of devices * }
+    ISS_SoundDeviceNum : DWord;   { * Number of selected device * }
 
     ISS_SoundDevice  : ISS_PSoundDevice;
     ISS_SoundDriver  : ISS_PSoundDriver;
@@ -100,22 +110,22 @@ Var ISS_SystemOK       : Boolean; { ş True if the system is initiated and ş }
 
 Implementation
 
-{ ş Including Linear Frequency Table ş }
+{ * Including Linear Frequency Table * }
 {$INCLUDE ISS_FREQ.INC}
 
 Var ISS_SysStarted   : Boolean;
     ISS_PeriodicCall : Pointer;
 
-{ ş >>> I N T E R N A L  F U N C T I O N S <<< ş }
+{ * >>> I N T E R N A L  F U N C T I O N S <<< * }
 
-Function ISS_DetectBestDev : DWord; { ş Returns Best Device Number ş }
+Function ISS_DetectBestDev : DWord; { * Returns Best Device Number * }
 Var Counter   : DWord;
 Begin
  Counter:=0;
  Repeat
   Inc(Counter);
   If Counter>ISS_DevicesNum Then Begin
-    { ş Musn't happen, because Nosound device should be always linked ş }
+    { * Musn't happen, because Nosound device should be always linked * }
     ISS_DetectBestDev:=$FFFFFFFF;
     ISS_SoundDeviceNum:=$FFFFFFFF;
     ISS_DevicesOK:=False;
@@ -127,14 +137,14 @@ Begin
  ISS_DetectBestDev:=Counter;
 End;
 
-Function ISS_InitDev : Boolean; { ş Initializes the selected Device ş }
+Function ISS_InitDev : Boolean; { * Initializes the selected Device * }
 Begin
  ISS_SoundDevice:=ISS_SoundDevices[ISS_SoundDeviceNum];
  ISS_SoundDriver:=ISS_SoundDevice^.DevDriver;
- ISS_InitDev:=ISS_SoundDriver^.Init(); { ş Initializes the Device ş }
+ ISS_InitDev:=ISS_SoundDriver^.Init(); { * Initializes the Device * }
 End;
 
-Function ISS_DoneDev : Boolean; { ş Closes the selected Device ş }
+Function ISS_DoneDev : Boolean; { * Closes the selected Device * }
 Begin
  ISS_DoneDev:=False;
  If ISS_SoundDriver^.Done() Then Begin
@@ -144,7 +154,7 @@ Begin
   End;
 End;
 
-{ ş >>> P U B L I C  F U N C T I O N S <<< ş }
+{ * >>> P U B L I C  F U N C T I O N S <<< * }
 
 Function ISS_Setup : Boolean;
 Begin
@@ -154,8 +164,8 @@ End;
 Function ISS_AutoSetup : Boolean;
 Begin
  ISS_AutoSetup:=False;
- ISS_DetectBestDev; { ş Detecting Best Device ş }
- If ISS_DevicesOK Then Begin { ş If OK, setting up the device! ş }
+ ISS_DetectBestDev; { * Detecting Best Device * }
+ If ISS_DevicesOK Then Begin { * If OK, setting up the device! * }
    ISS_SoundDevice:=ISS_SoundDevices[ISS_SoundDeviceNum];
    ISS_SoundDriver:=ISS_SoundDevice^.DevDriver;
    With ISS_SoundDevice^ Do Begin
@@ -177,7 +187,7 @@ Function ISS_Init : Boolean;
 Begin
  ISS_Init:=False;
  If (Not ISS_SysStarted) And (Not ISS_SystemOK) Then Begin
-   If Not ISS_InitDev Then Exit; { ş Currently selected device is in error! ş }
+   If Not ISS_InitDev Then Exit; { * Currently selected device is in error! * }
    If ISS_VirtualChannels=Nil Then New(ISS_VirtualChannels);
    FillChar(ISS_VirtualChannels^,SizeOf(ISS_TVirtualChannels),#0);
    ISS_Init:=True;
@@ -196,7 +206,7 @@ Begin
   End;
 End;
 
-{ ş Sets the active channels number ş }
+{ * Sets the active channels number * }
 Function ISS_SetActiveChannels(Channels : DWord) : Boolean;
 Begin
  ISS_SetActiveChannels:=False;
@@ -206,8 +216,8 @@ Begin
    ISS_SetActiveChannels:=True;
    Exit;
   End Else Begin
-   { ş ERROR CODE! ş }
-   { ş Too many channels ş }
+   { * ERROR CODE! * }
+   { * Too many channels * }
   End;
 End;
 
@@ -231,9 +241,9 @@ Function ISS_StartOutput(PeriodicProc : Pointer) : Boolean;
 Begin
  ISS_StartOutput:=False;
  If ISS_DevicesOK Then Begin
-   If ISS_SysStarted Then Exit; { ş Exit if output device is active ş }
+   If ISS_SysStarted Then Exit; { * Exit if output device is active * }
 
-   { ş Starting Device ş }
+   { * Starting Device * }
    ISS_PeriodicCall:=PeriodicProc;
    ISS_SysStarted:=ISS_SoundDriver^.StartOut(ISS_PeriodicCall);
 
@@ -245,9 +255,9 @@ Function ISS_StopOutput : Boolean;
 Begin
  ISS_StopOutput:=False;
  If ISS_DevicesOK Then Begin
-   If Not ISS_SysStarted Then Exit; { ş Exit if output device is inactive ş }
+   If Not ISS_SysStarted Then Exit; { * Exit if output device is inactive * }
 
-   { ş Stopping Device ş }
+   { * Stopping Device * }
    ISS_SysStarted:=Not ISS_SoundDriver^.StopOut(ISS_PeriodicCall);
 
    ISS_StopOutput:=Not ISS_SysStarted;
@@ -255,7 +265,7 @@ Begin
 End;
 
 
-{ ş Returns Actual Period for the specified Channel ş }
+{ * Returns Actual Period for the specified Channel * }
 Function ISS_GetPeriod(Channel : Word) : DWord;
 Begin
  If ISS_DevicesOK And ISS_SysStarted Then Begin
@@ -263,14 +273,14 @@ Begin
   End;
 End;
 
-{ ş Sets Period for the specified Channel ş }
+{ * Sets Period for the specified Channel * }
 Function ISS_SetPeriod(Channel : Word; Period : Word) : Boolean;
 Begin
  ISS_SetPeriod:=False;
  If ISS_DevicesOK And ISS_SysStarted Then Begin
 
    With ISS_VirtualChannels^[Channel] Do Begin
-     { ş Don't set the period, if there is no sample address ş }
+     { * Don't set the period, if there is no sample address * }
      If VChSmpAddr=Nil Then Exit;
 
      VChPeriod :=Period;
@@ -279,7 +289,7 @@ Begin
   End;
 End;
 
-{ ş Get the period from the note and the sample definition ş }
+{ * Get the period from the note and the sample definition * }
 Function ISS_SmpGetNotePeriod(SampleAddress : ISS_PSample;
                               Note          : DWord) : DWord;
 Var BufPeriod : DWord;
@@ -292,10 +302,10 @@ Begin
 
      RealNote:=(Note-1)+SRelNote;
 
-     { ş Check Sample Realtive Note ş }
+     { * Check Sample Realtive Note * }
      If (RealNote>0) Or (RealNote<=118) Then Begin
-       { ş Linear Period ş }
-       { ş Amiga periods should be implemented later. ş }
+       { * Linear Period * }
+       { * Amiga periods should be implemented later. * }
        BufPeriod:=7680-(RealNote*64)-(SFineTune Div 2);
        ISS_SmpGetNotePeriod:=BufPeriod;
       End;
@@ -305,15 +315,15 @@ Begin
 
 End;
 
-{ ş Get the period from the note and channel number. ş }
+{ * Get the period from the note and channel number. * }
 Function ISS_ChGetNotePeriod(Channel : DWord; Note : DWord) : DWord;
 Begin
  ISS_ChGetNotePeriod:=
    ISS_SmpGetNotePeriod(ISS_VirtualChannels^[Channel].VChSmpAddr,Note);
 End;
 
-{ ş Calculates the frequency from the specified period, sets it to ş }
-{ ş the specified channel, and returns it to the caller. ş }
+{ * Calculates the frequency from the specified period, sets it to * }
+{ * the specified channel, and returns it to the caller. * }
 Function ISS_SetFrequency(Channel : DWord; Period : DWord) : DWord;
 
 Var BufFreq : DWord;
@@ -321,8 +331,8 @@ Begin
  ISS_SetFrequency:=0;
  With ISS_VirtualChannels^[Channel] Do Begin
 
-   { ş Linear Frequency ş }
-   { ş Amiga frequency should be implemented later. ş }
+   { * Linear Frequency * }
+   { * Amiga frequency should be implemented later. * }
    BufFreq:=ISS_LinearFreqTable[Period Mod 768];
    BufFreq:=BufFreq Shr (Period Div 768);
 
@@ -333,20 +343,20 @@ Begin
 End;
 
 
-{ ş Returns Global System Volume ş }
+{ * Returns Global System Volume * }
 Function ISS_GetGlobalVolume : DWord;
 Begin
  ISS_GetGlobalVolume:=ISS_GlobalSSVolume;
 End;
 
-{ ş Sets Global System Volume - Volume Range : 0-64 ş }
+{ * Sets Global System Volume - Volume Range : 0-64 * }
 Function ISS_SetGlobalVolume(Volume : Byte) : Boolean;
 Var Counter : DWord;
 Begin
  ISS_SetGlobalVolume:=False;
  If Volume>$80 Then Volume:=$80;
 
- ISS_GlobalSSVolume:=Volume; { ş Setting Global Volume ş }
+ ISS_GlobalSSVolume:=Volume; { * Setting Global Volume * }
 
  For Counter:=0 To ISS_ActiveSSChannels-1 Do Begin
    With ISS_VirtualChannels^[Counter] Do Begin
@@ -357,7 +367,7 @@ Begin
  ISS_SetGlobalVolume:=True;
 End;
 
-{ ş Sets volume on the specified channel - Volume range : 0-64 ş }
+{ * Sets volume on the specified channel - Volume range : 0-64 * }
 Function ISS_SetVolume(Channel : Word; Volume : Byte) : Boolean;
 Begin
  ISS_SetVolume:=False;
@@ -373,7 +383,7 @@ Begin
  ISS_SetVolume:=True;
 End;
 
-{ ş Gets volume from the specified channel ş }
+{ * Gets volume from the specified channel * }
 Function ISS_GetVolume(Channel : Word) : DWord;
 Begin
  If Channel>ISS_MaxSSChannels Then Begin
@@ -382,7 +392,7 @@ Begin
  ISS_GetVolume:=ISS_VirtualChannels^[Channel].VChVolume;
 End;
 
-{ ş Sets panning on the specified channel - Panning range : 0-255 ş }
+{ * Sets panning on the specified channel - Panning range : 0-255 * }
 Function ISS_SetPanning(Channel : Word; Panning : Byte) : Boolean;
 Begin
  ISS_SetPanning:=False;
@@ -394,7 +404,7 @@ Begin
   End;
 End;
 
-{ ş Gets panning from the specified channel ş }
+{ * Gets panning from the specified channel * }
 Function ISS_GetPanning(Channel : Word) : DWord;
 Begin
  If Channel>ISS_MaxSSChannels Then Begin
@@ -404,33 +414,33 @@ Begin
 End;
 
 
-{ ş Sets instrument envelope default values on the specified channel ş }
+{ * Sets instrument envelope default values on the specified channel * }
 Procedure ISS_InitInstrument(Channel : Word);
 Begin
  If Channel>ISS_MaxSSChannels Then Exit;
 
  With ISS_VirtualChannels^[Channel] Do Begin
 
-   VChFadeOutVolume:=$08000; { ş Default FadeOut Volume ş }
-   VChEnvVolume    :=64;     { ş Default Envelope Volume ş }
-   VChEnvVolPoint  :=0;      { ş Default Volume Envelope Positions ş }
+   VChFadeOutVolume:=$08000; { * Default FadeOut Volume * }
+   VChEnvVolume    :=64;     { * Default Envelope Volume * }
+   VChEnvVolPoint  :=0;      { * Default Volume Envelope Positions * }
    VChEnvVolPos    :=0;
 
-   VChEnvPanning   :=32;     { ş Default Envelope Panning ş }
-   VChEnvPanPoint  :=0;      { ş Default Panning Envelope Positions ş }
+   VChEnvPanning   :=32;     { * Default Envelope Panning * }
+   VChEnvPanPoint  :=0;      { * Default Panning Envelope Positions * }
    VChEnvPanPos    :=0;
 
-   VChAVibPitch    :=0;      { ş Default Autovibrato Pitch ş }
-   VChAVibPos      :=0;      { ş Default Autovibrato Position ş }
-   VChAVibSwpPos   :=0;      { ş Default Autovibrato Sweep Position ş }
+   VChAVibPitch    :=0;      { * Default Autovibrato Pitch * }
+   VChAVibPos      :=0;      { * Default Autovibrato Position * }
+   VChAVibSwpPos   :=0;      { * Default Autovibrato Sweep Position * }
 
-   VChControl:=VChControl And Not ISS_CCVolFadeOut; { ş  Disable FadeOut ş }
-   VChControl:=VChControl Or ISS_CCVolume; { ş Volume Change ş }
+   VChControl:=VChControl And Not ISS_CCVolFadeOut; { *  Disable FadeOut * }
+   VChControl:=VChControl Or ISS_CCVolume; { * Volume Change * }
 
   End;
 End;
 
-{ ş Starts a specified Instrument on the specified channel ş }
+{ * Starts a specified Instrument on the specified channel * }
 Function ISS_StartInstrument(Channel : Word;
                              Instr   : Word;
                              Note    : Word) : Boolean;
@@ -443,18 +453,18 @@ Begin
 
    With ISS_CurrentModule^ Do Begin
 
-     { ş Values Range Checking ş }
-     If Channel>ISS_MaxSSChannels Then Exit; { ş Channel number valid? ş }
-     If Instr>MInstrNum Then Exit; { ş Exit if Instrument Number invalid ş }
-     If Note>95 Then Exit; { ş Exit if Note is invalid ş }
+     { * Values Range Checking * }
+     If Channel>ISS_MaxSSChannels Then Exit; { * Channel number valid? * }
+     If Instr>MInstrNum Then Exit; { * Exit if Instrument Number invalid * }
+     If Note>95 Then Exit; { * Exit if Note is invalid * }
 
-     { ş Device Control ş }
+     { * Device Control * }
      With ISS_VirtualChannels^[Channel] Do Begin
 
-       { ş Specifying a new note will always stop the current. ş }
+       { * Specifying a new note will always stop the current. * }
        VChControl:=VChControl Or ISS_CCStop;
 
-       { ş Selecting Sample to be started ş }
+       { * Selecting Sample to be started * }
        SampleToStart:=Nil;
        InstrToStart:=MInstruments[Instr];
        With InstrToStart^ Do Begin
@@ -462,23 +472,23 @@ Begin
          SampleToStart:=ISamples[INoteTable[Note]];
         End;
 
-       If SampleToStart=Nil Then Exit; { ş Exit if sample is invalid ş }
+       If SampleToStart=Nil Then Exit; { * Exit if sample is invalid * }
 
-       { ş Checking if sample size is valid ş }
+       { * Checking if sample size is valid * }
        With SampleToStart^ Do Begin
          If SLength=0 Then Exit;
         End;
 
-       VChSmpAddr:=SampleToStart; { ş Set sample address ş }
-       VChInsAddr:=InstrToStart;  { ş Set instrument address ş }
-       VChSmpOffs:=0;             { ş Set sample offset to zero ş }
+       VChSmpAddr:=SampleToStart; { * Set sample address * }
+       VChInsAddr:=InstrToStart;  { * Set instrument address * }
+       VChSmpOffs:=0;             { * Set sample offset to zero * }
 
-       { ş Period Setup ş }
+       { * Period Setup * }
        BufPeriod:=ISS_SmpGetNotePeriod(SampleToStart,Note);
        If BufPeriod<>0 Then ISS_SetPeriod(Channel,BufPeriod)
                        Else Exit;
 
-       { ş Setting Channel Control (See Flags in ISS_VAR.PAS) ş }
+       { * Setting Channel Control (See Flags in ISS_VAR.PAS) * }
        VChControl:=VChControl Or (ISS_CCSample+ISS_CCPeriod+
                                   ISS_CCVolume+ISS_CCActive+ISS_CCPanning);
 
@@ -491,51 +501,51 @@ Begin
   End;
 End;
 
-{ ş Update Instruments in every tick ş }
+{ * Update Instruments in every tick * }
 Procedure ISS_UpdateInstruments;
 Var Counter     : DWord;
-    DPosition   : LongInt; { ş Delta EnvPosition ş }
-    DVolume     : LongInt; { ş Delta EnvVolume ş }
-    DPanning    : LongInt; { ş Delta Panning ş }
+    DPosition   : LongInt; { * Delta EnvPosition * }
+    DVolume     : LongInt; { * Delta EnvVolume * }
+    DPanning    : LongInt; { * Delta Panning * }
     BufVibValue : Byte;
 Begin
  For Counter:=0 To ISS_ActiveSSChannels-1 Do Begin
    With ISS_VirtualChannels^[Counter] Do Begin
 
-     { ş Check if instrument is active on the current channel ş }
+     { * Check if instrument is active on the current channel * }
      If (VChInsAddr<>Nil) And ((VChControl And ISS_CCActive)>0) Then Begin
        With VChInsAddr^ Do Begin
 
-         { ş Do FadeOut ş }
+         { * Do FadeOut * }
          If (VChControl And ISS_CCVolFadeOut)>0 Then Begin
-           { ş Fadeout reached 0? ş }
+           { * Fadeout reached 0? * }
            If IVolFadeOut<VChFadeOutVolume Then Begin
-             { ş No, still fade out volume ş }
+             { * No, still fade out volume * }
              Dec(VChFadeOutVolume,IVolFadeOut);
              VChControl:=VChControl Or ISS_CCVolume;
             End Else Begin
-             { ş Yes, stop voice. ş }
+             { * Yes, stop voice. * }
              VChFadeOutVolume:=0;
              VChControl:=VChControl Or ISS_CCStop;
             End;
            End;
 
-         { ş Do Volume Envelope ş }
+         { * Do Volume Envelope * }
          With IVolumeEnv Do Begin
            If (EnvType And ISS_EnvEnabled)>0 Then Begin
 
-             { ş Processing Envelope Loops ş }
+             { * Processing Envelope Loops * }
              If VChEnvVolPos=0 Then Begin
 
-               { ş Envelope Looped? ş }
+               { * Envelope Looped? * }
                If (EnvType And ISS_EnvLoop)>0 Then Begin
-                 { ş Do envelope loop, if no sustain or fadeout in progess ş }
+                 { * Do envelope loop, if no sustain or fadeout in progess * }
                  If (VChEnvVolPoint<>EnvSustain) Or
                     ((EnvType And ISS_EnvSustain)=0) Or
                     ((VChControl And ISS_CCVolFadeOut)>0) Then Begin
 
-                   { ş Loop, if envelope reached loop endpoint, and the ş }
-                   { ş endpoint is not the sustain point. ş }
+                   { * Loop, if envelope reached loop endpoint, and the * }
+                   { * endpoint is not the sustain point. * }
                    If (VChEnvVolPoint=EnvLoopEnd) And
                       (VChEnvVolPoint<>EnvSustain) Then Begin
                      VChEnvVolPoint:=EnvLoopStart;
@@ -546,34 +556,34 @@ Begin
 
               End;
 
-             { ş Envelope Reached Last Point? ş }
+             { * Envelope Reached Last Point? * }
              If VChEnvVolPoint+1<>EnvPointsNum Then Begin
 
-               { ş Delta Initial Values ş }
+               { * Delta Initial Values * }
                With EnvPoints[VChEnvVolPoint+1] Do Begin
                  DPosition:=EPPosition;
                  DVolume:=EPValue;
                 End;
 
                With EnvPoints[VChEnvVolPoint] Do Begin
-                 { ş Calculating Delta Values ş }
+                 { * Calculating Delta Values * }
                  DPosition:=Abs(DPosition-EPPosition);
                  DVolume:=DVolume-EPValue;
 
-                 { ş Calculating Final Volume ş }
+                 { * Calculating Final Volume * }
                  VChEnvVolume:=EPValue+((DVolume*VChEnvVolPos) Div DPosition);
                  VChControl:=VChControl Or ISS_CCVolume;
                 End;
 
-               { ş Always increase envelope position if fadeout active, ş }
-               { ş sustain disabled or envelope position is between points ş }
+               { * Always increase envelope position if fadeout active, * }
+               { * sustain disabled or envelope position is between points * }
                If ((EnvType And ISS_EnvSustain)=0) Or
                   ((VChControl And ISS_CCVolFadeOut)>0) Or
                   (VChEnvVolPos<>0) Or
                   (VChEnvVolPoint<>EnvSustain) Then Begin
 
-                 Inc(VChEnvVolPos); { ş Increase envelope ş }
-                 { ş Position reached next point? ş }
+                 Inc(VChEnvVolPos); { * Increase envelope * }
+                 { * Position reached next point? * }
                  If VChEnvVolPos>=DPosition Then Begin
                    VChEnvVolPos:=0;
                    Inc(VChEnvVolPoint);
@@ -582,7 +592,7 @@ Begin
                 End;
 
               End Else Begin
-               { ş Envelope reached end ş }
+               { * Envelope reached end * }
                VChEnvVolume:=EnvPoints[VChEnvVolPoint].EPValue;
                VChControl:=VChControl Or ISS_CCVolume;
               End;
@@ -591,20 +601,20 @@ Begin
 
           End;
 
-         { ş Do Panning Envelope ş }
+         { * Do Panning Envelope * }
          With IPanningEnv Do Begin
            If (EnvType And ISS_EnvEnabled)>0 Then Begin
 
-             { ş Processing Envelope Loops ş }
+             { * Processing Envelope Loops * }
              If VChEnvPanPos=0 Then Begin
 
-               { ş Envelope Looped? ş }
+               { * Envelope Looped? * }
                If (EnvType And ISS_EnvLoop)>0 Then Begin
-                 { ş Do envelope loop, if no sustain in progess ş }
+                 { * Do envelope loop, if no sustain in progess * }
                  If (VChEnvPanPoint<>EnvSustain) Or
                     ((EnvType And ISS_EnvSustain)=0) Then Begin
 
-                   { ş Loop, if envelope reached loop endpoint ş }
+                   { * Loop, if envelope reached loop endpoint * }
                    If (VChEnvPanPoint=EnvLoopEnd) And
                       (VChEnvPanPoint<>EnvSustain) Then Begin
                      VChEnvPanPoint:=EnvLoopStart;
@@ -615,33 +625,33 @@ Begin
 
               End;
 
-             { ş Envelope Reached Last Point? ş }
+             { * Envelope Reached Last Point? * }
              If VChEnvPanPoint+1<>EnvPointsNum Then Begin
 
-               { ş Delta Initial Values ş }
+               { * Delta Initial Values * }
                With EnvPoints[VChEnvPanPoint+1] Do Begin
                  DPosition:=EPPosition;
                  DPanning:=EPValue;
                 End;
 
                With EnvPoints[VChEnvPanPoint] Do Begin
-                 { ş Calculating Delta Values ş }
+                 { * Calculating Delta Values * }
                  DPosition:=Abs(DPosition-EPPosition);
                  DPanning:=DPanning-EPValue;
 
-                 { ş Calculating Final Panning ş }
+                 { * Calculating Final Panning * }
                  VChEnvPanning:=EPValue+((DPanning*VChEnvPanPos) Div DPosition);
                  VChControl:=VChControl Or ISS_CCPanning;
                 End;
 
-               { ş Always increase envelope position, if sustain disabled ş }
-               { ş or envelope position is between points ş }
+               { * Always increase envelope position, if sustain disabled * }
+               { * or envelope position is between points * }
                If ((EnvType And ISS_EnvSustain)=0) Or
                   (VChEnvPanPos<>0) Or
                   (VChEnvPanPoint<>EnvSustain) Then Begin
 
-                 Inc(VChEnvPanPos); { ş Increase envelope ş }
-                 { ş Position reached next point? ş }
+                 Inc(VChEnvPanPos); { * Increase envelope * }
+                 { * Position reached next point? * }
                  If VChEnvPanPos>=DPosition Then Begin
                    VChEnvPanPos:=0;
                    Inc(VChEnvPanPoint);
@@ -650,7 +660,7 @@ Begin
                 End;
 
               End Else Begin
-               { ş Envelope reached end ş }
+               { * Envelope reached end * }
                VChEnvPanning:=EnvPoints[VChEnvPanPoint].EPValue;
                VChControl:=VChControl Or ISS_CCPanning;
               End;
@@ -658,7 +668,7 @@ Begin
             End;
           End;
 
-         { ş Do Auto Vibrato ş }
+         { * Do Auto Vibrato * }
          If IVibDepth>0 Then Begin
 
            BufVibValue:=(ISS_SineTable[VChAVibPos And 127]*IVibDepth) Div 256;
@@ -666,13 +676,13 @@ Begin
                              Else VChAVibPitch:=-BufVibValue;
            Inc(VChAVibPos,IVibRate);
 
-           { ş Calculating Vibrato Sweep ş }
+           { * Calculating Vibrato Sweep * }
            If VChAVibSwpPos<IVibSweep Then Begin
              VChAVibPitch:=(VChAVibPitch*VChAVibSwpPos) Div IVibSweep;
              Inc(VChAVibSwpPos,1);
             End;
 
-           { ş Enabling Frequency Control ş }
+           { * Enabling Frequency Control * }
            VChControl:=VChControl Or ISS_CCPeriod;
 
           End;
@@ -684,7 +694,7 @@ Begin
   End;
 End;
 
-{ ş Instrument Key Off ş }
+{ * Instrument Key Off * }
 Procedure ISS_KeyOff(Channel : Word);
 Begin
  If Channel>ISS_MaxSSChannels Then Exit;
@@ -704,7 +714,7 @@ Begin
 End;
 
 
-Procedure ISS_UpdateOutput; { ş Updates the output device ş }
+Procedure ISS_UpdateOutput; { * Updates the output device * }
 Var Counter   : Word;
     BufPeriod : DWord;
     BufVolume : DWord;
@@ -712,39 +722,39 @@ Begin
  For Counter:=0 To ISS_ActiveSSChannels-1 Do Begin
    With ISS_VirtualChannels^[Counter] Do Begin
 
-     { ş Process Final Frequency Calculations ş }
+     { * Process Final Frequency Calculations * }
      If (VChControl And ISS_CCPeriod)>0 Then Begin
        BufPeriod:=VChPeriod;
-       Inc(BufPeriod,VChAVibPitch); { ş Adding AutoVibrato Pitch ş }
+       Inc(BufPeriod,VChAVibPitch); { * Adding AutoVibrato Pitch * }
        ISS_SetFrequency(Counter,BufPeriod);
       End;
 
-     { ş Process Final Volume Calculations ş }
+     { * Process Final Volume Calculations * }
      If (VChControl And ISS_CCVolume)>0 Then Begin
-       BufVolume:=VChVolume; { ş Sample Volume (0-64) ş }
+       BufVolume:=VChVolume; { * Sample Volume (0-64) * }
 
-       { ş Global System Volume (0-128) ş }
+       { * Global System Volume (0-128) * }
        BufVolume:=BufVolume*ISS_GlobalSSVolume;
        BufVolume:=BufVolume Shr 7;
 
-       { ş FadeOut Volume ($0-$8000) ş }
+       { * FadeOut Volume ($0-$8000) * }
        BufVolume:=BufVolume*VChFadeOutVolume;
        BufVolume:=BufVolume Shr 15;
 
-       { ş Envelope Volume (0-64) ş }
+       { * Envelope Volume (0-64) * }
        BufVolume:=BufVolume*VChEnvVolume;
        BufVolume:=BufVolume Shr 6;
 
-       { ş Global Player Volume (0-64) ş }
+       { * Global Player Volume (0-64) * }
        BufVolume:=BufVolume*ISS_GlobalPlVolume;
        BufVolume:=BufVolume Shr 6;
 
        VChFinalVolume:=BufVolume;
-       If VChMute Then VChFinalVolume:=0; { ş Force Mute Channel ş }
+       If VChMute Then VChFinalVolume:=0; { * Force Mute Channel * }
 
       End;
 
-     { ş Process Final Panning Calculations ş }
+     { * Process Final Panning Calculations * }
      If (VChControl And ISS_CCPanning)>0 Then Begin
        VChFinalPanning:=VChPanning+((VChEnvPanning-32)*
                         (128-Abs(VChPanning-128)) Div 32);
@@ -753,14 +763,14 @@ Begin
     End;
   End;
 
- ISS_SoundDriver^.UpdateOut; { ş Low-level driver call ş }
+ ISS_SoundDriver^.UpdateOut; { * Low-level driver call * }
 End;
 
 
-{ ş Set sample offset on the specified channel ş }
+{ * Set sample offset on the specified channel * }
 Procedure ISS_SetSampleOffset(Channel : DWord; SampOffset : DWord);
 Begin
- If Channel>ISS_MaxSSChannels Then Exit; { ş Channel number valid? ş }
+ If Channel>ISS_MaxSSChannels Then Exit; { * Channel number valid? * }
 
  With ISS_VirtualChannels^[Channel] Do Begin
     VChSmpOffs:=SampOffset;
@@ -768,50 +778,50 @@ Begin
   End;
 End;
 
-{ ş Device drivers initalization ş }
+{ * Device drivers initalization * }
 Function ISS_InitDevices : Boolean;
 Begin
  ISS_DevicesNum:=0;
  {$IFDEF _ISS_GUS_INCLUDE_}
   Inc(ISS_DevicesNum);
-  ISS_GUSDevInit; { ş Init GUS ş }
-  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_GUSDevice; { ş Include GUS ş }
+  ISS_GUSDevInit; { * Init GUS * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_GUSDevice; { * Include GUS * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
  {$IFDEF _ISS_SB_INCLUDE_}
   Inc(ISS_DevicesNum);
-  ISS_SBDevInit; { ş Init SB ş }
-  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_SBDevice; { ş Include SB ş }
+  ISS_SBDevInit; { * Init SB * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_SBDevice; { * Include SB * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
  {$IFDEF _ISS_NSND_INCLUDE_}
   Inc(ISS_DevicesNum);
-  ISS_NSNDDevInit; { ş Init Nosound ş }
-  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_NSNDDevice; { ş Include Nosound ş }
+  ISS_NSNDDevInit; { * Init Nosound * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_NSNDDevice; { * Include Nosound * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
  {$IFDEF _ISS_GUSNATIVE_INCLUDE_}
   Inc(ISS_DevicesNum);
-  ISS_GUS2DevInit; { ş Init OS/2 native GF1/Interwave ş }
-  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_GUS2Device; { ş Include OS/2 GUS ş }
+  ISS_GUS2DevInit; { * Init OS/2 native GF1/Interwave * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_GUS2Device; { * Include OS/2 GUS * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
  {$IFDEF _ISS_DART_INCLUDE_}
   Inc(ISS_DevicesNum);
-  ISS_DARTDevInit; { ş Init DART ş }
-  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_DARTDevice; { ş Include DART ş }
+  ISS_DARTDevInit; { * Init DART * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_DARTDevice; { * Include DART * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
  {$IFDEF _ISS_DSOUND_INCLUDE_}
   Inc(ISS_DevicesNum);
-  ISS_DSNDDevInit; { ş Init DirectSound ş }
-  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_DSNDDevice; { ş Include DirectSound ş }
+  ISS_DSNDDevInit; { * Init DirectSound * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_DSNDDevice; { * Include DirectSound * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
  {$IFDEF _ISS_OSS_INCLUDE_}
   Inc(ISS_DevicesNum);
-  ISS_OSSDevInit; { ş Init OSS ş }
-  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_OSSDevice; { ş Include OSS ş }
+  ISS_OSSDevInit; { * Init OSS * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_OSSDevice; { * Include OSS * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
 
@@ -826,7 +836,7 @@ Begin
  ISS_InitDevices:=(ISS_DevicesNum>0);
 End;
 
-{ ş System Initialization ş }
+{ * System Initialization * }
 Function ISS_InitSystem : Boolean;
 Var DevInit : Boolean;
     LdrInit : Boolean;
@@ -861,4 +871,3 @@ End;
 
 Begin
 End.
-{ ş ISS_SYS.PAS - (C) 1999-2001 Charlie/Inquisition ş }

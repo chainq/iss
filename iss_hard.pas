@@ -1,13 +1,23 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_HARD.PAS - Routines for IRQ and DMA and other system hardware      ³}
-{³                  Work started     : 2000.12.10.                          ³}
-{³                  Last modification: 2001.03.03.                          ³}
-{³             OS - GO32V2 only.                                            ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_HARD.PAS - Routines for IRQ and DMA and other system hardware     }
+{             OS - GO32V2 only.                                           }
+
 {$INCLUDE ISS_SET.INC}
 {$ASMMODE INTEL}
 {$MODE FPC}
@@ -15,12 +25,12 @@ Unit ISS_Hard;
 
 Interface
 
-Uses ISS_Var, { ş Uses the system variables and types ş }
-     GO32;    { ş Uses GO32 unit, because DOS-only driver ş }
+Uses ISS_Var, { * Uses the system variables and types * }
+     GO32;    { * Uses GO32 unit, because DOS-only driver * }
 
 Const ISS_IRQMapping : Array[$00..$0F] Of Byte =(
-                       $08,$09,$0A,$0B,$0C,$0D,$0E,$0F,  { ş 1st controller ş }
-                       $70,$71,$72,$73,$74,$75,$76,$77); { ş 2nd controller ş }
+                       $08,$09,$0A,$0B,$0C,$0D,$0E,$0F,  { * 1st controller * }
+                       $70,$71,$72,$73,$74,$75,$76,$77); { * 2nd controller * }
 
       ISS_DMARead       = %00000100;
       ISS_DMAWrite      = %00001000;
@@ -28,9 +38,9 @@ Const ISS_IRQMapping : Array[$00..$0F] Of Byte =(
       ISS_DMAModeDemand = %00000000;
       ISS_DMAModeSingle = %01000000;
 
-Var  ISS_DMASegment  : Word; { ş DMA Buffer Segment Address ş }
-     ISS_DMAAddress  : Pointer; { ş DMA Buffer Pascal Pointer ş }
-     ISS_DMASelector : Word; { ş DMA Buffer Selector ş }
+Var  ISS_DMASegment  : Word; { * DMA Buffer Segment Address * }
+     ISS_DMAAddress  : Pointer; { * DMA Buffer Pascal Pointer * }
+     ISS_DMASelector : Word; { * DMA Buffer Selector * }
 
 Procedure ISS_IRQEnable(IRQNum : Byte);
 Procedure ISS_IRQDisable(IRQNum : Byte);
@@ -51,7 +61,7 @@ Const DMACPage   : Array[0..7] Of Byte = ($087,$083,$081,$082,$08F,$08B,$089,$08
       DMACMode   : Array[0..7] Of Byte = ($00B,$00B,$00B,$00B,$0D6,$0D6,$0D6,$0D6);
       DMACClear  : Array[0..7] Of Byte = ($00C,$00C,$00C,$00C,$0D8,$0D8,$0D8,$0D8);
 
-{ ş Enables the specified IRQ ş }
+{ * Enables the specified IRQ * }
 Procedure ISS_IRQEnable(IRQNum : Byte); Assembler;
 Asm
  MOV CL,IRQNum
@@ -61,7 +71,7 @@ Asm
  CMP CL,7
  JA  @EnableOnPic2
 
- { ş Specified IRQ is on controller 1 ş }
+ { * Specified IRQ is on controller 1 * }
  IN  AL,$21
  AND AL,BL
  OUT $21,AL
@@ -69,19 +79,19 @@ Asm
 
  @EnableOnPIC2:
 
- { ş Specified IRQ is on controller 2 ş }
+ { * Specified IRQ is on controller 2 * }
  IN  AL,$0A1
  AND AL,BH
  OUT $0A1,AL
 
  IN  AL,$21
- AND AL,11111011B { ş Enable IRQ 2 cascade ş }
+ AND AL,11111011B { * Enable IRQ 2 cascade * }
  OUT $21,AL
 
  @Exit:
 End ['EAX','EBX','ECX'];
 
-{ ş Disables the specified IRQ ş }
+{ * Disables the specified IRQ * }
 Procedure ISS_IRQDisable(IRQNum : Byte); Assembler;
 Asm
  MOV CL,IRQNum
@@ -91,7 +101,7 @@ Asm
  CMP CL,7
  JA  @DisableOnPIC2
 
- { ş Specified IRQ is on controller 1 ş }
+ { * Specified IRQ is on controller 1 * }
  IN  AL,$21
  OR  AL,BL
  OUT $21,AL
@@ -99,7 +109,7 @@ Asm
 
  @DisableOnPIC2:
 
- { ş Specified IRQ is on controller 2 ş }
+ { * Specified IRQ is on controller 2 * }
  IN  AL,$0A1
  OR  AL,BH
  OUT $0A1,AL
@@ -107,20 +117,20 @@ Asm
  @Exit:
 End ['EAX','EBX','ECX'];
 
-{ ş Allocates the DMA Buffer ş }
+{ * Allocates the DMA Buffer * }
 Procedure ISS_DMAAllocBuffer;
 Var Linear   : DWord;
 Begin
- { ş We allocate 32kb for DMA buffer, but we using only 16kb of it. ş }
- { ş One 16kb piece of DMA buffer will not cross DMA Page for sure. ş }
- { ş Yepp, this hacking another good example to show, how "good"    ş }
- { ş the PC architecture is... ş }
+ { * We allocate 32kb for DMA buffer, but we using only 16kb of it. * }
+ { * One 16kb piece of DMA buffer will not cross DMA Page for sure. * }
+ { * Yepp, this hacking another good example to show, how "good"    * }
+ { * the PC architecture is... * }
  Linear:=Global_DOS_Alloc(32768);
- ISS_DMASegment :=Linear Shr 16;    { ş High Word is Segment Address ş }
+ ISS_DMASegment :=Linear Shr 16;    { * High Word is Segment Address * }
  ISS_DMAAddress :=Pointer((Linear And $FFFF0000) Shr 12);
- ISS_DMASelector:=Linear And $FFFF; { ş Low Word is Selector ş }
+ ISS_DMASelector:=Linear And $FFFF; { * Low Word is Selector * }
 
- { ş Clearing DMA buffer ş }
+ { * Clearing DMA buffer * }
  Asm
   MOV EDI,ISS_DMAAddress
   MOV ECX,32768/4
@@ -131,14 +141,14 @@ Begin
   LOOP @ClearLoop
  End ['EAX','ECX','EDI'];
 
- { ş Checking DMA Page Limit ş }
+ { * Checking DMA Page Limit * }
  If (((DWord(ISS_DMAAddress) And $0FFFF)+16384)>$10000) Then Begin
    Inc(DWord(ISS_DMAAddress),16384);
   End;
 
 End;
 
-{ ş Free up the DMA Buffer  ş }
+{ * Free up the DMA Buffer  * }
 Procedure ISS_DMAFreeBuffer;
 Begin
  Unlock_Linear_Region(DWord(ISS_DMAAddress)+
@@ -148,7 +158,7 @@ Begin
  ISS_DMASegment:=0;
 End;
 
-{ ş This routine is by Aleksey V. Vaneev, from his FPSound API. ş }
+{ * This routine is by Aleksey V. Vaneev, from his FPSound API. * }
 Procedure ISS_DMAStart(DMAChannel : DWord; Address: Pointer;
                        BlockLength,Mode : DWord); Assembler;
 Asm
@@ -232,4 +242,3 @@ End;
 
 Begin
 End.
-{ ş ISS_HARD.PAS - (C) 2000-2001 Charlie/Inquisition ş }

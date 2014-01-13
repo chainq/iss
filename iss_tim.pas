@@ -1,32 +1,23 @@
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
 
-{ þ Inquisition's Timer Services Unit þ }
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
 
-{ þ This file is part of the Inquisition Sound Server for the Free þ }
-{ þ Pascal Compiler (http://www.freepascal.org) but also can be    þ }
-{ þ be distributed separately. The source code is FREE FOR ANY NON þ }
-{ þ COMMERCIAL USAGE.                                              þ }
-{ þ You can modify this file, but you musn't distribute the        þ }
-{ þ modified file, only the original version. Instead, send your   þ }
-{ þ modification to us, so we can add it to the official version.  þ }
-{ þ Please note, that we can't quarantee the compatibility with    þ }
-{ þ previous versions.                                             þ }
-{ þ If we'll stop the development of this unit in the future,      þ }
-{ þ the source code will be freely available for any use.          þ }
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
 
-{ þ You can always download the newest version from our website,  þ }
-{ þ http://scenergy.dfmk.hu/inqcoders/                            þ }
-{ þ About Inquisition itself, see                                 þ }
-{ þ http://scenergy.dfmk.hu/inquisition/                          þ }
-
-{ þ Comments, notes, suggestions, bug reports are welcome.      þ }
-{ þ Send your mails to charlie@scenergy.dfmk.hu                 þ }
-{ þ Please prefer hungarian or english languages.               þ }
-
-{ þ ISS_TIM - Timer Unit (GO32V2 Only!)      þ }
-{ þ Coding Starts     : 10. October. 1998.   þ }
-{ þ Last Modification : 01. March. 2001.     þ }
-
-{ þ Note: req. FPC version 1.0.0+ for GO32V2 to compile þ }
+{ * Inquisition's Timer Services Unit                   * }
+{ * ISS_TIM - Timer Unit (GO32V2 Only!)                 * }
+{ * Note: req. FPC version 1.0.0+ for GO32V2 to compile * }
 
 {$ASMMODE INTEL}
 {$MODE FPC}
@@ -37,23 +28,23 @@ Interface
 Uses GO32;
 
 Const ISS_TimerSpeed  : DWord = 1193180;
-      ISS_MaxTimers   = $8; { þ Maximum Number of Timers  þ }
+      ISS_MaxTimers   = $8; { * Maximum Number of Timers  * }
 
-      TimerIRQ        = $8; { þ HW IRQ Number þ }
+      TimerIRQ        = $8; { * HW IRQ Number * }
 
-      ISS_TENoFree   = $01; { þ Can't add new timer. All timers locked. þ }
-      ISS_TENotFound = $02; { þ Can't find specified Timer, to stop. þ }
+      ISS_TENoFree   = $01; { * Can't add new timer. All timers locked. * }
+      ISS_TENotFound = $02; { * Can't find specified Timer, to stop. * }
 
 Type TTimerStruc = Record
        TSpeed     : DWord;
-       TCount     : DWord;     { þ Tick Counter þ }
-       TPrevCount : DWord;     { þ Tick Counter state at prev. activity þ }
-       TProc      : Pointer;   { þ Procedure To Call Offset þ }
-       TActive    : Boolean;   { þ 1 If The Timer Is On þ }
+       TCount     : DWord;     { * Tick Counter * }
+       TPrevCount : DWord;     { * Tick Counter state at prev. activity * }
+       TProc      : Pointer;   { * Procedure To Call Offset * }
+       TActive    : Boolean;   { * 1 If The Timer Is On * }
       End;
 
 Var ISS_TimersData : Array[1..ISS_MaxTimers] Of TTimerStruc;
-    ISS_TimerError : DWord; { þ Contains the last timer error code. þ }
+    ISS_TimerError : DWord; { * Contains the last timer error code. * }
 
 Function ISS_StartTimer(Var NewTProc : Pointer; NewTSpeed : DWord) : Boolean;
 Function ISS_StopTimer(Var TimerProc : Pointer) : Boolean;
@@ -80,7 +71,7 @@ Begin
        If (TCount>TSpeed) Then Begin
          Dec(TCount,TSpeed);
          TPrevCount:=TCount;
-         Proc(TProc); { þ Calling the specified routine þ }
+         Proc(TProc); { * Calling the specified routine * }
         End;
       End;
     End;
@@ -126,7 +117,7 @@ Asm
     @Timer_3:
 
   @NotUpdateClock:
-  MOV   DX,$20 { þ Interrupt request acknowledge þ }
+  MOV   DX,$20 { * Interrupt request acknowledge * }
   MOV   AL,$20
   OUT   DX,AL
   POPAD
@@ -256,20 +247,3 @@ Begin
  NewIRQActive:=False;
  TimerSpeed:=0;
 End.
-{ þ ISS_TIM.PAS - (C) 1998-2001 Charlie/Inquisition þ }
-
-{ þ Changelog : þ }
-{ þ 1.1.1 - Some code cleanup for less compiler hacking...                þ }
-{ þ       - Webpage and email addresses fixed in the header comment.      þ }
-{ þ         [01.march.2001]                                               þ }
-{ þ 1.1.0 - Major update, a new IRQ routine which contains less compiler  þ }
-{ þ         hacking. Based on the docs of FPC 1.0.2. Not tested with      þ }
-{ þ         versions below 1.0.0. GNU AS no longer required to compile.   þ }
-{ þ         [03.december.2000]                                            þ }
-{ þ 1.0.2 - Header comment fixed.                                         þ }
-{ þ         [18.apr.2000]                                                 þ }
-{ þ 1.0.1 - Removed a limitation which made smartlinking impossible.      þ }
-{ þ         (Reported by Surgi/Terror Opera)                              þ }
-{ þ         [13.apr.2000]                                                 þ }
-{ þ 1.0.0 - First Public Version                                          þ }
-{ þ         [08.jan.2000]                                                 þ }

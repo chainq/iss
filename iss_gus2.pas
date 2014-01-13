@@ -1,25 +1,34 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_GUS2.PAS - Device Driver for GF1/Interwave based cards under OS/2  ³}
-{³                  via the Manley Drivers native API.                      ³}
-{³                  Work started     : 2001.03.25.                          ³}
-{³                  Last modification: 2001.06.29.                          ³}
-{³             OS - OS/2 only.                                              ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş This unit is heavily based on the work of Sander van Leeuwen author of ³}
-{³   the latest OS/2 GUS2 drivers and Timo Maier, who ported the native API ³}
-{³   C include file to Virtual Pascal/2. Thank you.                         ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_GUS2.PAS - Device Driver for GF1/Interwave based cards under OS/2 }
+{                  via the Manley Drivers native API.                     }
+{             OS - OS/2 only.                                             }
+
+{ * This unit is heavily based on the work of Sander van Leeuwen author of }
+{   the latest OS/2 GUS2 drivers and Timo Maier, who ported the native API }
+{   C include file to Virtual Pascal/2. Thank you.                         }
+
 {$INCLUDE ISS_SET.INC}
 {$ASMMODE INTEL}
 {$MODE FPC}
 
-{$HINTS OFF} { ş Enable this if you modify the source! ş }
-{$NOTES OFF} { ş Enable this if you modify the source! ş }
+{$HINTS OFF} { * Enable this if you modify the source! * }
+{$NOTES OFF} { * Enable this if you modify the source! * }
 
 {$IFDEF _ISS_GUSNATIVE_OLDVOLUMETABLE_}
  {$INFO GUS2 driver will use the old volume table!}
@@ -29,37 +38,37 @@ Unit ISS_GUS2;
 
 Interface
 
-Uses ISS_Var, { ş Uses the system variables and types ş }
-     OS2Def,  { ş Uses OS/2 system interface ş }
-     DOSCalls;{ ş Uses OS/2 DOSCALLS.DLL ş }
+Uses ISS_Var, { * Uses the system variables and types * }
+     OS2Def,  { * Uses OS/2 system interface * }
+     DOSCalls;{ * Uses OS/2 DOSCALLS.DLL * }
 
 Const ISS_GUS2VersionStr = '0.1.0';
       ISS_GUS2Name     = 'OS/2 GF1/Interwave Driver';
       ISS_GUS2LongDesc = 'OS/2 GF1/Interwave Based Device Driver';
 
-Var ISS_GUS2Device : ISS_TSoundDevice; { ş GUS2 Device Structure ş }
-    ISS_GUS2Driver : ISS_TSoundDriver; { ş GUS2 Device Driver ş }
+Var ISS_GUS2Device : ISS_TSoundDevice; { * GUS2 Device Structure * }
+    ISS_GUS2Driver : ISS_TSoundDriver; { * GUS2 Device Driver * }
 
-Procedure ISS_GUS2DevInit; { ş Inits the GUS2 driver structures ş }
+Procedure ISS_GUS2DevInit; { * Inits the GUS2 driver structures * }
 
 Implementation
 
 Type UltraAllocStruct = Packed Record
-       SmpSize     : LongInt; { ş Memory size to allocate ş }
-       SmpLocation : LongInt; { ş Location (return value) ş }
-       SmpType     : Byte;    { ş 0 = 8bit sample, 4 = 16bit sample ş }
+       SmpSize     : LongInt; { * Memory size to allocate * }
+       SmpLocation : LongInt; { * Location (return value) * }
+       SmpType     : Byte;    { * 0 = 8bit sample, 4 = 16bit sample * }
       End;
      UltraFreeStruct  = Packed Record
-       SmpSize     : LongInt; { ş Memory size to free ş }
-       SmpLocation : LongInt; { ş Location to free ş }
+       SmpSize     : LongInt; { * Memory size to free * }
+       SmpLocation : LongInt; { * Location to free * }
       End;
      UltraXferStruct = Packed Record
        XferControl : Byte;
        XferDRAMLoc : LongInt;
       End;
      UltraTimerStruct = Packed Record
-       Timer : Integer; { ş GUS timer interrupt number ş }
-       Time  : Byte;    { ş Time between interrupts ş }
+       Timer : Integer; { * GUS timer interrupt number * }
+       Time  : Byte;    { * Time between interrupts * }
       End;
      UltraVolumeStruct = Packed Record
        Voice   : Integer;
@@ -123,25 +132,25 @@ Const GUS2_Commands = $0F;
 
       UltraDevSetLoopStart = $78;
 
-      { ş Here are the dma to/from DRAM control bit definitions: ş }
+      { * Here are the dma to/from DRAM control bit definitions: * }
       UltraDramRead  = $02;
       UltraDram16Bit = $40;
       UltraDram8Bit  = $80;
 
 Var ISS_GUS2DRAMOffset : DWord;
 
-    ISS_GUS2ActiveChannels : Word;  { ş Number of active hardware channels ş }
+    ISS_GUS2ActiveChannels : Word;  { * Number of active hardware channels * }
 
     ISS_GUS2Handle         : DWord;
     ISS_GUS2UpdThreadID    : LongInt;
     ISS_GUS2Thread_Exit    : Boolean;
     ISS_GUS2PeriodicCall   : Procedure;
 
-{ ş >>> O S / 2  S Y S T E M  C O N S T A N T S <<< ş }
-{ ş The constants here should be added later to the FPC OS/2 RTL (?) ş }
+{ * >>> O S / 2  S Y S T E M  C O N S T A N T S <<< * }
+{ * The constants here should be added later to the FPC OS/2 RTL (?) * }
 
-Const { ş DosOpen/DosQFHandState/DosQueryFileInfo et al file attributes; also ş }
-      { ş known as Dos File Mode bits... ş }
+Const { * DosOpen/DosQFHandState/DosQueryFileInfo et al file attributes; also * }
+      { * known as Dos File Mode bits... * }
       FILE_NORMAL    = $0000;
       FILE_READONLY  = $0001;
       FILE_HIDDEN    = $0002;
@@ -149,50 +158,50 @@ Const { ş DosOpen/DosQFHandState/DosQueryFileInfo et al file attributes; also ş 
       FILE_DIRECTORY = $0010;
       FILE_ARCHIVED  = $0020;
 
-      { ş DosOpen() actions ş }
+      { * DosOpen() actions * }
       FILE_EXISTED   = $0001;
       FILE_CREATED   = $0002;
       FILE_TRUNCATED = $0003;
 
-      { ş DosOpen() open flags ş }
+      { * DosOpen() open flags * }
       FILE_OPEN     = $0001;
       FILE_TRUNCATE = $0002;
       FILE_CREATE   = $0010;
 
-      { ş DosOpen/DosSetFHandState flags ş }
-      OPEN_ACCESS_READONLY        = $0000; { ş ---- ---- ---- -000 ş }
-      OPEN_ACCESS_WRITEONLY       = $0001; { ş ---- ---- ---- -001 ş }
-      OPEN_ACCESS_READWRITE       = $0002; { ş ---- ---- ---- -010 ş }
-      OPEN_SHARE_DENYREADWRITE    = $0010; { ş ---- ---- -001 ---- ş }
-      OPEN_SHARE_DENYWRITE        = $0020; { ş ---- ---- -010 ---- ş }
-      OPEN_SHARE_DENYREAD         = $0030; { ş ---- ---- -011 ---- ş }
-      OPEN_SHARE_DENYNONE         = $0040; { ş ---- ---- -100 ---- ş }
-      OPEN_FLAGS_NOINHERIT        = $0080; { ş ---- ---- 1--- ---- ş }
-      OPEN_FLAGS_NO_LOCALITY      = $0000; { ş ---- -000 ---- ---- ş }
-      OPEN_FLAGS_SEQUENTIAL       = $0100; { ş ---- -001 ---- ---- ş }
-      OPEN_FLAGS_RANDOM           = $0200; { ş ---- -010 ---- ---- ş }
-      OPEN_FLAGS_RANDOMSEQUENTIAL = $0300; { ş ---- -011 ---- ---- ş }
-      OPEN_FLAGS_NO_CACHE         = $1000; { ş ---1 ---- ---- ---- ş }
-      OPEN_FLAGS_FAIL_ON_ERROR    = $2000; { ş --1- ---- ---- ---- ş }
-      OPEN_FLAGS_WRITE_THROUGH    = $4000; { ş -1-- ---- ---- ---- ş }
-      OPEN_FLAGS_DASD             = $8000; { ş 1--- ---- ---- ---- ş }
+      { * DosOpen/DosSetFHandState flags * }
+      OPEN_ACCESS_READONLY        = $0000; { * ---- ---- ---- -000 * }
+      OPEN_ACCESS_WRITEONLY       = $0001; { * ---- ---- ---- -001 * }
+      OPEN_ACCESS_READWRITE       = $0002; { * ---- ---- ---- -010 * }
+      OPEN_SHARE_DENYREADWRITE    = $0010; { * ---- ---- -001 ---- * }
+      OPEN_SHARE_DENYWRITE        = $0020; { * ---- ---- -010 ---- * }
+      OPEN_SHARE_DENYREAD         = $0030; { * ---- ---- -011 ---- * }
+      OPEN_SHARE_DENYNONE         = $0040; { * ---- ---- -100 ---- * }
+      OPEN_FLAGS_NOINHERIT        = $0080; { * ---- ---- 1--- ---- * }
+      OPEN_FLAGS_NO_LOCALITY      = $0000; { * ---- -000 ---- ---- * }
+      OPEN_FLAGS_SEQUENTIAL       = $0100; { * ---- -001 ---- ---- * }
+      OPEN_FLAGS_RANDOM           = $0200; { * ---- -010 ---- ---- * }
+      OPEN_FLAGS_RANDOMSEQUENTIAL = $0300; { * ---- -011 ---- ---- * }
+      OPEN_FLAGS_NO_CACHE         = $1000; { * ---1 ---- ---- ---- * }
+      OPEN_FLAGS_FAIL_ON_ERROR    = $2000; { * --1- ---- ---- ---- * }
+      OPEN_FLAGS_WRITE_THROUGH    = $4000; { * -1-- ---- ---- ---- * }
+      OPEN_FLAGS_DASD             = $8000; { * 1--- ---- ---- ---- * }
       OPEN_FLAGS_NONSPOOLED       = $00040000;
       OPEN_FLAGS_PROTECTED_HANDLE = $40000000;
 
-      { ş definitions for DosError - combine with Or ş }
-      FERR_DISABLEHARDERR   = $00000000; { ş disable hard error popups ş }
-      FERR_ENABLEHARDERR    = $00000001; { ş enable hard error popups  ş }
-      FERR_ENABLEEXCEPTION  = $00000000; { ş enable exception popups   ş }
-      FERR_DISABLEEXCEPTION = $00000002; { ş disable exception popups  ş }
+      { * definitions for DosError - combine with Or * }
+      FERR_DISABLEHARDERR   = $00000000; { * disable hard error popups * }
+      FERR_ENABLEHARDERR    = $00000001; { * enable hard error popups  * }
+      FERR_ENABLEEXCEPTION  = $00000000; { * enable exception popups   * }
+      FERR_DISABLEEXCEPTION = $00000002; { * disable exception popups  * }
 
-{ ş Workaround for DosDevIOCtl definition in DOSCALLS.DLL using pointers. ş }
+{ * Workaround for DosDevIOCtl definition in DOSCALLS.DLL using pointers. * }
 Function DosDevIOCtl(Handle, Category, Func : LongInt;
                      Params: Pointer; ParamLen: LongInt; Var ParamSize: LongInt;
                      Data: Pointer; DataLen: LongInt; Var DataSize: LongInt): LongInt; CDecl;
 External 'DOSCALLS' Index 284;
 
 
-{ ş >>> D E B U G  F U N C T I O N S <<< ş }
+{ * >>> D E B U G  F U N C T I O N S <<< * }
 
 {$IFDEF _ISS_GUSNATIVE_DEBUGMODE_}
  Function WriteHex(Num : Word) : String[4];
@@ -209,10 +218,10 @@ External 'DOSCALLS' Index 284;
  End;
 {$ENDIF}
 
-{ ş >>> I N T E R N A L  F U N C T I O N S <<< ş }
+{ * >>> I N T E R N A L  F U N C T I O N S <<< * }
 
 
-{ ş HW initializating and basic settings ş }
+{ * HW initializating and basic settings * }
 
 Function UltraGetAccess : LongInt;
 var ParmLength,DataLength : LongInt;
@@ -255,7 +264,7 @@ Var ParmLength,DataLength : LongInt;
 Begin
   ParmLength := 0;
   DataLength := SizeOf(NumVoices);
-  { ş Make sure, voices is in the 14-32 range. ş }
+  { * Make sure, voices is in the 14-32 range. * }
   If NumVoices < 14 Then NumVoices := 14 Else
   If NumVoices > 32 Then NumVoices := 32;
   UltraSetNumVoices:=DosDevIOCtl(ISS_GUS2Handle,GUS2_Commands,
@@ -288,7 +297,7 @@ Begin
 End;
 
 Function UltraGetDriverVersionStr : String;
-{ ş This procedure was GetManleyVersion in the original VP/2 version ş }
+{ * This procedure was GetManleyVersion in the original VP/2 version * }
 Var DrvVersion    : Word;
     DrvVersionStr : String[5];
 Begin
@@ -326,7 +335,7 @@ Begin
 End;
 
 
-{ ş Memory handling ş }
+{ * Memory handling * }
 
 Function UltraMemAlloc(Size : LongInt; Var Location : LongInt; Smp16Bit : Boolean) : LongInt;
 Var ParmLength,DataLength : LongInt;
@@ -335,7 +344,7 @@ Begin
   ParmLength := 0;
   DataLength := SizeOf(UltraAllocStruct);
   If (Size MOD 32) <> 0 Then
-    Inc(Size,32 - (Size MOD 32)); { ş Bring Size up to a 32 byte boundary ş }
+    Inc(Size,32 - (Size MOD 32)); { * Bring Size up to a 32 byte boundary * }
   With AllocBuffer Do Begin
     SmpSize     := Size;
     SmpLocation := Location;
@@ -345,7 +354,7 @@ Begin
                              UltraDevMemAlloc,
                              NIL,0,ParmLength,
                              @AllocBuffer,DataLength,DataLength);
-  Location := AllocBuffer.SmpLocation; { ş location in GUS DRAM ş }
+  Location := AllocBuffer.SmpLocation; { * location in GUS DRAM * }
 End;
 
 Function UltraMemFree(Size,Location : LongInt) : LongInt;
@@ -366,7 +375,7 @@ Begin
 End;
 
 Function UltraDownload(DataPtr : Pointer; Control : Byte; DRAMLoc, Size : LongInt) : LongInt;
-{ ş Requires Driver Version >= 1.10 ş }
+{ * Requires Driver Version >= 1.10 * }
 Const Max = 64*1000;
 Var ParmLength,DataLength : LongInt;
     RC                    : LongInt;
@@ -382,11 +391,11 @@ Begin
    End;
 
   RC := 0;
-  { ş NEED to allocate a buffer to transfer samples > 64 kb !!! ş }
+  { * NEED to allocate a buffer to transfer samples > 64 kb !!! * }
   RC := DosAllocMem(Buffer64k,64*1024,PAG_COMMIT or PAG_WRITE);
   If RC = 0 Then Begin
-    { ş 16 bit segments in a 32 bit world :( ş }
-    { ş Another good example for the weakness of x86 architecture... ş }
+    { * 16 bit segments in a 32 bit world :( * }
+    { * Another good example for the weakness of x86 architecture... * }
     While (Size > Max) And (RC = 0) Do Begin
       Move(DataPtr^,Buffer64k^,Max);
       RC := DosDevIOCtl(ISS_GUS2Handle,GUS2_COMMANDS,
@@ -413,7 +422,7 @@ Begin
                         UltraDevPrepare4DMAXfer,
                         NIL,0,ParmLength,
                         @XferBuffer,DataLength,DataLength);
-      If RC = 0 Then Begin { ş Last transfer ş }
+      If RC = 0 Then Begin { * Last transfer * }
         RC := DosWrite(ISS_GUS2Handle,Buffer64k^,Size,Written);
        End;
      End;
@@ -424,13 +433,13 @@ Begin
 End;
 
 
-{ ş Timer handling ş }
+{ * Timer handling * }
 
 Function UltraBlockTimerHandler1 : LongInt;
 Var ParmLength,DataLength : LongInt;
 Begin
   DataLength := 0; ParmLength := 0;
-  { ş block until GUS timer1 interrupt ş }
+  { * block until GUS timer1 interrupt * }
   UltraBlockTimerHandler1:=DosDevIOCtl(ISS_GUS2Handle,GUS2_Commands,
                                        UltraDevBlockTimerHandler1,
                                        NIL,0,ParmLength,
@@ -441,7 +450,7 @@ Function UltraBlockTimerHandler2 : LongInt;
 Var ParmLength,DataLength : LongInt;
 Begin
   DataLength := 0; ParmLength := 0;
-  { ş block until GUS timer2 interrupt ş }
+  { * block until GUS timer2 interrupt * }
   UltraBlockTimerHandler2:=DosDevIOCtl(ISS_GUS2Handle,GUS2_Commands,
                                        UltraDevBlockTimerHandler2,
                                        NIL,0,ParmLength,
@@ -474,7 +483,7 @@ Begin
 End;
 
 
-{ ş Voice management ş }
+{ * Voice management * }
 
 Function UltraStopVoice(Voice : Integer) : LongInt;
 Var ParmLength,DataLength : LongInt;
@@ -488,7 +497,7 @@ Begin
 End;
 
 Function UltraVoiceStopped(Voice : Integer) : Boolean;
-{ ş Returns false while playing Voice ş }
+{ * Returns false while playing Voice * }
 Var ParmLength,DataLength : LongInt;
 Begin
   ParmLength := 0;
@@ -502,9 +511,9 @@ End;
 
 Function UltraVectorLinearVolume(Voice,End_Idx : Word; Rate,
                                  Mode : Byte): LongInt;
-{ ş End_Idx;   Voice end level                     ş }
-{ ş Rate;      0 to 63                             ş }
-{ ş Mode;      mode to run the volume ramp in ...  ş }
+{ * End_Idx;   Voice end level                     * }
+{ * Rate;      0 to 63                             * }
+{ * Mode;      mode to run the volume ramp in ...  * }
 Var ParmLength,DataLength : LongInt;
     VolBuffer             : UltraVolumeStruct;
 Begin
@@ -550,11 +559,11 @@ End;
 
 Function UltraStartVoice(GusVoice : Integer; begin_,start,end_ : LongInt;
                          Mode : Byte) : LongInt;
-{ ş gusvoice  voice to start                    ş }
-{ ş begin_    start location in ultra DRAM      ş }
-{ ş start     start loop location in ultra DRAM ş }
-{ ş end_      end location in ultra DRAM        ş }
-{ ş mode      mode to run the voice (loop etc)  ş }
+{ * gusvoice  voice to start                    * }
+{ * begin_    start location in ultra DRAM      * }
+{ * start     start loop location in ultra DRAM * }
+{ * end_      end location in ultra DRAM        * }
+{ * mode      mode to run the voice (loop etc)  * }
 Var ParmLength,DataLength : LongInt;
     Voice                 : UltraVoiceStruct;
 Begin
@@ -574,9 +583,9 @@ Begin
 End;
 
 
-{ ş HW open/close ş }
+{ * HW open/close * }
 
-Function OpenUltraSound : Boolean; { ş True if successful ş }
+Function OpenUltraSound : Boolean; { * True if successful * }
 Var Status : LongInt;
     Action : LongInt;
 Begin
@@ -590,9 +599,9 @@ Begin
    End Else Begin
     If UltraGetAccess > 0 Then Begin
       DosClose(ISS_GUS2Handle);
-      OpenUltraSound:=False;  { ş Not only owner ş }
+      OpenUltraSound:=False;  { * Not only owner * }
      End Else Begin
-      OpenUltraSound:=True;   { ş Ultrasound access ok ş }
+      OpenUltraSound:=True;   { * Ultrasound access ok * }
      End;
    End;
   DOSCalls.DosError(fErr_EnableHardErr);
@@ -606,7 +615,7 @@ Begin
 End;
 
 
-{ ş >>> U L T R A S O U N D  U P D A T E  T H R E A D <<< ş }
+{ * >>> U L T R A S O U N D  U P D A T E  T H R E A D <<< * }
 
 Function ISS_GUS2HandlerThread(Param : Pointer) : LongInt; CDecl;
 Var DGUSTimer : DWord;
@@ -625,7 +634,7 @@ Begin
 End;
 
 
-{ ş >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< ş }
+{ * >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< * }
 
 Function ISS_GUS2Detect : Boolean;
 Begin
@@ -636,7 +645,7 @@ Function ISS_GUS2Init : Boolean;
 Begin
  ISS_GUS2Init:=False;
  If Not ISS_GUS2Device.DevAvail Then Begin
-   { ş ERROR CODE! ş }
+   { * ERROR CODE! * }
    Exit;
   End;
  If Not OpenUltraSound Then Exit;
@@ -663,33 +672,33 @@ Begin
  ISS_GUS2LoadSample:=False;
  Status:=False;
 
- { ş Uploading sample ş }
+ { * Uploading sample * }
  With SStruc^ Do Begin
 
-   { ş If sample is 16bit, divide size with 2 ş }
+   { * If sample is 16bit, divide size with 2 * }
    If (SType And ISS_Smp16BitData)>0 Then Begin
      RealSLength:=SLength Div 2;
     End Else Begin
      RealSLength:=SLength;
     End;
 
-   { ş Is the sample fits into GUSRAM? ş }
+   { * Is the sample fits into GUSRAM? * }
    If RealSLength+ISS_GUS2DRAMOffset+1>ISS_GUS2Device.DevDRAMSize Then Begin
-     { ş ERROR CODE! ş }
+     { * ERROR CODE! * }
      Exit;
     End;
 
    GetMem(SmpConvBuf,RealSLength);
 
-   { ş GUS has some limitations when using 16bit samples, noteably a 16bit ş }
-   { ş sample can't cross a 256k boundary. To simplify the driver, and ş }
-   { ş because the lack of time, i decided to convert the samples to 8bit ş }
-   { ş before loading into the GUS RAM. Later, a GUS heap manager should ş }
-   { ş be implemented to handle 16bit samples correctly, but the mixer ş }
-   { ş and other tasks has higher priority now. ş }
-   { ş UPDATE: instead of a heap handler, an intelligent sample manager ş }
-   { ş         should be implemented, to allow playing XM's bigger than ş }
-   { ş         the available wavetable memory on wavetable soundcards.  ş }
+   { * GUS has some limitations when using 16bit samples, noteably a 16bit * }
+   { * sample can't cross a 256k boundary. To simplify the driver, and * }
+   { * because the lack of time, i decided to convert the samples to 8bit * }
+   { * before loading into the GUS RAM. Later, a GUS heap manager should * }
+   { * be implemented to handle 16bit samples correctly, but the mixer * }
+   { * and other tasks has higher priority now. * }
+   { * UPDATE: instead of a heap handler, an intelligent sample manager * }
+   { *         should be implemented, to allow playing XM's bigger than * }
+   { *         the available wavetable memory on wavetable soundcards.  * }
    If (SType And ISS_Smp16BitData)>0 Then Begin
      For Counter:=0 To RealSLength-1 Do Begin
        PShortInt(SmpConvBuf)[Counter]:=PInteger(SData)[Counter] Shr 8;
@@ -698,7 +707,7 @@ Begin
      Move(SData^,SmpConvBuf^,RealSLength);
     End;
 
-   { ş Modifying sample beginning to avoid some clickings ş }
+   { * Modifying sample beginning to avoid some clickings * }
    PShortInt(SmpConvBuf)[0]:=0;
 
    If UltraMemAlloc(RealSLength,SmpDRAMPos,FALSE)=0 Then Begin
@@ -722,10 +731,10 @@ End;
 
 Function ISS_GUS2SetVolume(Volume : DWord) : Boolean;
 Begin
- { ş Dummy. Old GUSes have no mixer. :( Later, the support for the ş }
- { ş newer-series GF1's ICS mixer should be added. I'm looking for ş }
- { ş some programing docs about the ICS mixer! If you have the docs, ş }
- { ş please contact me, so i can add support for it. ş }
+ { * Dummy. Old GUSes have no mixer. :( Later, the support for the * }
+ { * newer-series GF1's ICS mixer should be added. I'm looking for * }
+ { * some programing docs about the ICS mixer! If you have the docs, * }
+ { * please contact me, so i can add support for it. * }
  ISS_GUS2SetVolume:=True;
 End;
 
@@ -738,13 +747,13 @@ Begin
                             Else ISS_GUS2ActiveChannels:=ISS_ActiveSSChannels;
  If ISS_GUS2ActiveChannels<14 Then ISS_GUS2ActiveChannels:=14;
 
- { ş Boostin' up "The Queen Of The SoundCards" :) ş }
+ { * Boostin' up "The Queen Of The SoundCards" :) * }
  UltraSetNumVoices(ISS_GUS2ActiveChannels);
  UltraEnableOutput;
- { ş Phew, this was easy, wasn't it? Compare this with a Sound Blaster ş }
- { ş initialization code... :) ş }
+ { * Phew, this was easy, wasn't it? Compare this with a Sound Blaster * }
+ { * initialization code... :) * }
 
- { ş Now initializing the handler thread ş }
+ { * Now initializing the handler thread * }
  ISS_GUS2Thread_Exit:=False;
  GUS2HandlerThread:=@ISS_GUS2HandlerThread;
  Pointer(ISS_GUS2PeriodicCall):=PeriodicCall;
@@ -765,21 +774,21 @@ Function ISS_GUS2StopOutput(PeriodicCall : Pointer) : Boolean;
 Begin
  UltraDisableOutput;
 
- { ş Terminating GUS update thread ş }
+ { * Terminating GUS update thread * }
  ISS_GUS2Thread_Exit:=True;
  DosWaitThread(ISS_GUS2UpdThreadID,dtWait);
 
- ISS_GUS2StopOutput:=True{ISS_StopTimer(PeriodicCall)}; { ş Stops timer call ş }
+ ISS_GUS2StopOutput:=True{ISS_StopTimer(PeriodicCall)}; { * Stops timer call * }
  {$IFDEF _ISS_GUSNATIVE_DEBUGMODE_}
    WriteLn('DEV_INIT: ',ISS_GUS2Name,' output stopped.');
  {$ENDIF}
 End;
 
-Procedure ISS_GUS2UpdateOutput; { ş Updates the sound output ş }
-{ ş This is the main driver, which runs on the timer at 140hz frequency ş }
-{ ş so it should be as fast as possible. Because it's a low-level driver, ş }
-{ ş hardware and platform dependent, it's a good idea to implement this ş }
-{ ş later again - in full-assembly. ş }
+Procedure ISS_GUS2UpdateOutput; { * Updates the sound output * }
+{ * This is the main driver, which runs on the timer at 140hz frequency * }
+{ * so it should be as fast as possible. Because it's a low-level driver, * }
+{ * hardware and platform dependent, it's a good idea to implement this * }
+{ * later again - in full-assembly. * }
 Var ChannelCounter : Word;
     SampleBegin    : DWord;
     SampleEnd      : DWord;
@@ -791,7 +800,7 @@ Var ChannelCounter : Word;
     RealLoopEnd    : DWord;
 Begin
 
- { ş Stop Voices If Needed ş }
+ { * Stop Voices If Needed * }
  For ChannelCounter:=0 To ISS_GUS2ActiveChannels-1 Do Begin
    With ISS_VirtualChannels^[ChannelCounter] Do Begin
      If ((VChControl And ISS_CCActive)>0) And
@@ -802,20 +811,20 @@ Begin
     End;
   End;
 
- { ş Start Voices Update ş }
+ { * Start Voices Update * }
  For ChannelCounter:=0 To ISS_GUS2ActiveChannels-1 Do Begin
    With ISS_VirtualChannels^[ChannelCounter] Do Begin
 
-     { ş Anything to do on this channel? ş }
+     { * Anything to do on this channel? * }
      If (VChControl>1) And ((VChControl And ISS_CCActive)>0) Then Begin
 
-       { ş Start a Sample ? ş }
+       { * Start a Sample ? * }
        If (VChControl And ISS_CCSample)>0 Then Begin
          Dec(VChControl,ISS_CCSample);
 
          With VChSmpAddr^ Do Begin
 
-           { ş 16bit sample values conversion ş }
+           { * 16bit sample values conversion * }
            If (SType And ISS_Smp16BitData)>0 Then Begin
              RealLength   :=SLength    Div 2;
              RealLoopStart:=SLoopStart Div 2;
@@ -826,50 +835,50 @@ Begin
              RealLoopEnd  :=SLoopEnd;
             End;
 
-           { ş Sample & Loop End Address Calc. ş }
-           { ş -1 is needed, because SampleEnd value _must_ contain the ş }
-           { ş _last_ sample position and not the last+1!!! ş }
+           { * Sample & Loop End Address Calc. * }
+           { * -1 is needed, because SampleEnd value _must_ contain the * }
+           { * _last_ sample position and not the last+1!!! * }
            SampleEnd:=SDRAMOffs+RealLength-1;
 
            If (SType And ISS_SmpPingPongLoop)>0 Then Begin
-             { ş Offset limit checking ş }
+             { * Offset limit checking * }
              If (VChSmpOffs>RealLength-1) Then VChSmpOffs:=RealLoopStart;
-             { ş Sample end value checking ş }
-             LoopEnd:=SDRAMOffs+RealLoopEnd-1; { ş Same here as above... ş }
+             { * Sample end value checking * }
+             LoopEnd:=SDRAMOffs+RealLoopEnd-1; { * Same here as above... * }
              If LoopEnd>SampleEnd Then LoopEnd:=SampleEnd;
             End Else Begin
              LoopEnd:=SampleEnd;
             End;
 
-           { ş Sample & Loop Start Address Calc. ş }
+           { * Sample & Loop Start Address Calc. * }
            SampleBegin:=SDRAMOffs+VChSmpOffs;
            LoopBegin  :=SDRAMOffs+RealLoopStart;
 
-           { ş Now we're going to tell to the GUS these values ş }
+           { * Now we're going to tell to the GUS these values * }
            UltraStartVoice(ChannelCounter,SampleBegin,
                            LoopBegin,LoopEnd,SType And %00011000);
           End;
         End;
 
-       { ş Change Channel Panning ? ş }
+       { * Change Channel Panning ? * }
        If (VChControl And ISS_CCPanning)>0 Then Begin
          Dec(VChControl,ISS_CCPanning);
          UltraSetBalance(ChannelCounter,VChFinalPanning Shr 4);
         End;
 
-       { ş Change Channel Volume ? ş }
+       { * Change Channel Volume ? * }
        If (VChControl And ISS_CCVolume)>0 Then Begin
          Dec(VChControl,ISS_CCVolume);
          UltraVectorLinearVolume(ChannelCounter,VChFinalVolume Shl 2,$2F,0);
         End;
 
-       { ş Change Channel Frequency ? ş }
+       { * Change Channel Frequency ? * }
        If (VChControl And ISS_CCPeriod)>0 Then Begin
          Dec(VChControl,ISS_CCPeriod);
          UltraSetFrequency(ChannelCounter,VChFreq);
         End;
 
-       { ş Is Channel Still Active ? ş }
+       { * Is Channel Still Active ? * }
        If UltraVoiceStopped(ChannelCounter) Then Begin
          VChControl:=VChControl And Not ISS_CCActive;
         End;
@@ -880,9 +889,9 @@ Begin
 End;
 
 
-{ ş >>> P U B L I C  F U N C T I O N S <<< ş }
+{ * >>> P U B L I C  F U N C T I O N S <<< * }
 
-{ ş Inits the GUS2 driver structures ş }
+{ * Inits the GUS2 driver structures * }
 Procedure ISS_GUS2DevInit;
 Begin
  With ISS_GUS2Driver Do Begin
@@ -902,12 +911,12 @@ Begin
   WriteLn('DEV_INIT: Device - ',ISS_GUS2LongDesc,' ',ISS_GUS2VersionStr);
  {$ENDIF}
 
- { ş Reading ULTRASND Environment Settings ş }
+ { * Reading ULTRASND Environment Settings * }
  If OpenUltraSound Then Begin
-   { ş If ULTRASND found, assigning hardware parameters ş }
+   { * If ULTRASND found, assigning hardware parameters * }
    With ISS_GUS2Device Do Begin
-     DevName    :=ISS_GUS2Name; { ş Name of the device ş }
-     DevType    :=ISS_Dev16Bit+ISS_DevStereo+ISS_DevWaveTable;{ ş Device Type ş }
+     DevName    :=ISS_GUS2Name; { * Name of the device * }
+     DevType    :=ISS_Dev16Bit+ISS_DevStereo+ISS_DevWaveTable;{ * Device Type * }
      DevBaseport:=0;
      DevIRQ     :=0;
      DevDMA1    :=0;
@@ -938,4 +947,3 @@ End;
 
 Begin
 End.
-{ ş ISS_GUS22.PAS - (C) 2001 Charlie/Inquisition ş }

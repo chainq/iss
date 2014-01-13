@@ -1,24 +1,27 @@
 
-              ş Inquisition Sound Server Development History ş
+              * Inquisition Sound Server Development History *
 
-  ÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ
+  NOTE: as of 2014, this file is of course deprecated in favor of a VCS. :)
+        however, it is kept as reference of ancient changes...
+
+  ==========================================================================
 
   Legend : + new feature
            - bugfix
-           * changed
-           ş note
+           # changed
+           * note
 
-  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-  Version No.  ş Description of Modifications
-  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+  --------------------------------------------------------------------------
+  Version No.  * Description of Modifications
+  --------------------------------------------------------------------------
 
-   0.2.1       ş SECOND OFFICIAL RELEASE - Codename "Yavin"
-               ş Thanks for Zoom/INQ and TCC/INQ for test hardware support.
+   0.2.1       * SECOND OFFICIAL RELEASE - Codename "Yavin"
+               * Thanks for Zoom/INQ and TCC/INQ for test hardware support.
                + OS/2 support added.
                + OS/2 support added to INQPlay and ISSPlay.
                + Native OS/2 GUS support using the Manley drivers API added.
                + DART (OS/2 Warp Direct Audio RouTines) support added.
-               ş THE OS/2 SUPPORT IS STILL IN ALPHA STAGE. HANDLE WITH CARE.
+               * THE OS/2 SUPPORT IS STILL IN ALPHA STAGE. HANDLE WITH CARE.
                + Platform ID numbers and Strings added to ISS_VAR.PAS.
                + Some preliminary code added for upcoming Win32/DirectSound
                  and Linux/OSS support. Note that the drivers still not
@@ -27,23 +30,23 @@
                + Some preliminary code added for upcoming MOD and S3M
                  support. Note that the loaders still not included in the
                  release version, so do not enable these in ISS_SET.INC.
-               * GUS driver volume handling reworked. The new volume table
+               # GUS driver volume handling reworked. The new volume table
                  is calculated at init time, the two older volume tables
                  removed. So the driver is somewhat smaller now.
-               * ISS_CCVoicePos device command removed. The system now uses
+               # ISS_CCVoicePos device command removed. The system now uses
                  ISS_CCStop+ISS_CCSample+ISS_CCVolume commands to have the
                  same result as ISS_CCVoice had. This simplifies channel
                  handling in devices.
-               * Since a device command removed, numerical values of device
+               # Since a device command removed, numerical values of device
                  commands changed. This was done to keep the code clean.
-               * Got rid of those Boolean() bit flag checks, and replaced
+               # Got rid of those Boolean() bit flag checks, and replaced
                  with =0 and >0 checks. The compiler generates faster and
                  smaller code from this.
-               * Some internal changes around sample handling.
-               * System changes around initalization and shutdown. Check
+               # Some internal changes around sample handling.
+               # System changes around initalization and shutdown. Check
                  the example players. (ISS_Init and ISS_Done now must be
                  called by the user program.)
-               * Device driver interface changed. A new driver callback
+               # Device driver interface changed. A new driver callback
                  named 'Done' added to allow the system to have more control
                  on devices. This was heavily needed under multi-tasking
                  environments. Stay tuned for more changes...
@@ -66,10 +69,10 @@
                  Matti Hamalainen for the bugreport.
                  [2000.june.29]
 
-   0.2.0       ş FIRST OFFICIAL RELEASE - Codename "Coruscant"
-               ş Thanks for Zoom/INQ and Innocent/INQ for test hardware
+   0.2.0       * FIRST OFFICIAL RELEASE - Codename "Coruscant"
+               * Thanks for Zoom/INQ and Innocent/INQ for test hardware
                  support.
-               ş WARNING! API CHANGED! Check the example players.
+               * WARNING! API CHANGED! Check the example players.
                + Added _ISS_LOAD_NOFILEMODE_ directive to disable file
                  functions in the module loader subsystem. This results in
                  a lot smaller soundsystem, and allows easier integration
@@ -99,17 +102,17 @@
                + A 32bit software mixer added. It's buggy, it's VERY slow,
                  but mostly works. It will be much better in future releases.
                  Use GUS anyway. ;)
-               * New copyright headers to match the style with the rest of
+               # New copyright headers to match the style with the rest of
                  our demo system.
-               * ISS_Done is no longer required to be called, because it is
+               # ISS_Done is no longer required to be called, because it is
                  called by the new function ISS_DoneModulePlay;
-               * Slow nosound driver is back.
-               * GUS driver modifications for less ultraclicks. I'm now using
+               # Slow nosound driver is back.
+               # GUS driver modifications for less ultraclicks. I'm now using
                  nearly the same way to start/stop a sample as Open Cubic
                  Player does. So it sounds pretty well i think. Anyway it's
                  a lot slower than the old way, but still acceptable.
                  At least the processors getting faster... ;)
-               * Timer advancements. Rewritten IRQ routine in Intel assembly.
+               # Timer advancements. Rewritten IRQ routine in Intel assembly.
                  No longer requires GNU AS to compile.
                - Player timing was buggy at high BPM rates. Fixed.
                - Playback was buggy using instruments with empty (zero
@@ -119,11 +122,11 @@
                - Autovibrato depth calculation was buggy. Fixed.
                  [date:2001.march.01]
 
-   0.1.9       ş INTERNAL ONLY, NEVER RELEASED.
-               ş Codename was "Hoth"... Guess why... :)
+   0.1.9       * INTERNAL ONLY, NEVER RELEASED.
+               * Codename was "Hoth"... Guess why... :)
                  (Check out the changes above.)
 
-   0.1.8HV     ş CONFERENCE 7007 Party at Debrecen/Hungary (2000.10.27-29)
+   0.1.8HV     * CONFERENCE 7007 Party at Debrecen/Hungary (2000.10.27-29)
                  We released our demo, called High Voltage, and we won.
                  The demo works with ISS 0.1.8, but with Autovibrato fixed.
                  Sadly i had no time to finish the new 0.1.9 version before
@@ -133,19 +136,19 @@
                  It has higher priority now.
                  [date:29.october.2000]
 
-   0.1.8       ş TEST RELEASE 10 - Codename "Bespin"
-               ş The Sound Blaster driver and the mixer are NOT included in
+   0.1.8       * TEST RELEASE 10 - Codename "Bespin"
+               * The Sound Blaster driver and the mixer are NOT included in
                  this release. There were many changes in both mixer and SB
                  code, and neither of them are stable now, so i removed them.
                  Both will be back in 0.2.0, with full mixer and SB support.
-               * Heavy internal changes in the effect processing. The effect
+               # Heavy internal changes in the effect processing. The effect
                  selection mechanism now uses tables instead of huge CASE
                  structures. This makes future improvements more easy, and
                  also should be much faster. (ISS_PLAY.PAS, ISS_PLFX.PAS)
-               * GUS driver now uses a new volume table. This one sounds much
+               # GUS driver now uses a new volume table. This one sounds much
                  better in my opinion. However, if you like the old one, you
                  still can switch it back in ISS_SET.INC.
-               * Linear Frequency Table replaced with a new one. (The one
+               # Linear Frequency Table replaced with a new one. (The one
                  from Judas Soundsystem, hehe. ;-) This sounds much better.
                + ISS_Done procedure implemented to free up internal system
                  memory areas when they are no longer required. (ISS_SYS.PAS)
@@ -171,10 +174,10 @@
                - Some other minor corrections and fixes.
                  [date:07.august.2000]
 
-   0.1.7       ş TEST RELEASE 09 - Codename "Corelia"
-               * WARNING! There are _HUGE_ amount of internal changes in this
+   0.1.7       * TEST RELEASE 09 - Codename "Corelia"
+               # WARNING! There are _HUGE_ amount of internal changes in this
                  release! The API changed too! See the example players.
-               * Device driver and loader initalization removed from the
+               # Device driver and loader initalization removed from the
                  units' startup code, and implemented as a function call.
                  Check ISS_SYS.PAS for ISS_InitSystem.
                + 16bit sample limitation removed from the system, it's now
@@ -217,7 +220,7 @@
                  was some vibrato debug code, which i forgot to remove. ;)
                  [date:07.june.2000]
 
-   0.1.6       ş TEST RELEASE 08 - Codename "Mon Calamari"
+   0.1.6       * TEST RELEASE 08 - Codename "Mon Calamari"
                + Player global volume support.
                + Set global volume command added. (Gxy)
                + Global volume slide command added. (Hxy)
@@ -230,8 +233,8 @@
                  It's still leaky and/or crash in case of 16bit samples.
                  Do _NOT_ use it. This bug will disappear in the next release
                  after some internal changes.
-               * ISS_GlobalVolume variable renamed to ISS_GlobalSSVolume.
-               * Changes in the internal module format for better error
+               # ISS_GlobalVolume variable renamed to ISS_GlobalSSVolume.
+               # Changes in the internal module format for better error
                  handling.
                - Delay Note bugfix. Thanks for Innocent/iNQ for his help.
                - XM loader was buggy with modules containing 0 byte length
@@ -240,9 +243,9 @@
                  :) Thanks for Nobo/Chrysalis for his help.
                  [date:05.may.2000]
 
-   0.1.5       ş TEST RELEASE 07 - Codename "Kessel"
-               ş This is mainly a bugfix release.
-               ş Thanks for KiD/iNQ, who tested the player and reported a
+   0.1.5       * TEST RELEASE 07 - Codename "Kessel"
+               * This is mainly a bugfix release.
+               * Thanks for KiD/iNQ, who tested the player and reported a
                  lot of bugs.
                + The example player now got a special multitasker-support
                  feature. You can switch it on with button M. Tested under
@@ -264,7 +267,7 @@
                  was wrong. Fixed.
                  [date:18.april.2000]
 
-   0.1.4       ş TEST RELEASE 06 - Codename "Star's End"
+   0.1.4       * TEST RELEASE 06 - Codename "Star's End"
                + Portamento+VolumeSlide (5xy) command added.
                + Delay Note command added.
                + Volume Envelope support added.
@@ -273,11 +276,11 @@
                  arrow keys in the example player.
                + System-level support for manual change the music position.
                + Pattern Jump command added.
-               * Internal structure format changed from packed to word
+               # Internal structure format changed from packed to word
                  aligned. This means some speedup.
-               * Changes in the internal module format. This was necessary
+               # Changes in the internal module format. This was necessary
                  for envelope-support.
-               * Minor changes and changes and enhancements in the UI of
+               # Minor changes and changes and enhancements in the UI of
                  the example player, such hexadecimal display, etc.
                - Smartlinking was impossible due a limitation in the timer
                  unit. Fixed. (Reported by Surgi/Terror Opera)
@@ -297,18 +300,18 @@
                  correctly on GUS Classics too. As a side-effect, you can
                  expect less Ultraclicks. But the driver also slower a bit
                  now. :(
-               * Some internal modifications. (VChControl Flags)
+               # Some internal modifications. (VChControl Flags)
                  [date:04.april.2000]
 
-   0.1.2       * XMs using Amiga periods now supported, but using linear
+   0.1.2       # XMs using Amiga periods now supported, but using linear
                  periods. However, it seems they play correctly.
                + Basic things for instrument support added.
                + Volume Fadeouts added.
                + Keyoff support added.
                - Filemode bugfix for opening read-only files.
-               * GUS driver optimizations. Less UltraClicks(TM), more speed.
+               # GUS driver optimizations. Less UltraClicks(TM), more speed.
                  [date:02.april.2000]
-               * The GUS driver now uses much less CPU time.
+               # The GUS driver now uses much less CPU time.
                - 16bit sample bug workaround. 16bit samples now converted
                  to 8bit while loading. This is because I could not find any
                  programming info for GUS using 16bit samples. The GUS SDK
@@ -322,45 +325,45 @@
                + SetVolumePanning command added.
                  [date:20.march.2000]
 
-   0.1.1       * Volume slide now optimized for less CPU overhead.
+   0.1.1       # Volume slide now optimized for less CPU overhead.
                - Buggy note calculations fixed (Reported by Tcc/iNQ).
                - SetSampleOffset effect was buggy. Fixed.
                  [date:18.march.2000]
 
-   0.1.0       ş Lot's of bugs fixed, lot's of features added, since the
+   0.1.0       * Lot's of bugs fixed, lot's of features added, since the
                  last update in this history, the player progressing well,
                  it's stable, however it still lacks some features like
                  instruments, and most of the effects. Anyway, i'm happy
                  with it and i sent out some example versions for testing.
                  [date:08.march.2000]
-               ş Now, the first song was properly played by the player.
+               * Now, the first song was properly played by the player.
                  It was the 'Boci-boci tarka' a hungarian child-song.
                  Special remix made by me. :) Don't miss this masterpiece,
                  you can found it under the name boczee.xm. :)
                  [date:07.february.2000, time.06:27.am]
-               ş Today, the brand new rewritten soundsystem first produced
+               * Today, the brand new rewritten soundsystem first produced
                  some static sound. This means, my new GUS driver works, but
                  still requires some bugfixing. :) Anyway, i'm happy with
                  the results, and it seems i can reach my target.
                  [date:22.january.2000]
-               ş I wasn't ready, so our new demo called High Voltage is
+               * I wasn't ready, so our new demo called High Voltage is
                  delayed until Conference 7007. :(
-               ş Beginning of a major reorganization, rewriting and optimi-
+               * Beginning of a major reorganization, rewriting and optimi-
                  zation. I hope i'll be ready until Conference 3000.
                  [date:18.october.1999]
 
-  x.x.xALPHA0x ş Early development versions
+  x.x.xALPHA0x * Early development versions
                  (Playing MODs and some XMs near correctly)
                  These versions heavily based on the Useless Soundsystem 1.1
                  by FreddyV/Useless
 
-  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-  ş Statistics
-  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+  --------------------------------------------------------------------------
+  * Statistics
+  --------------------------------------------------------------------------
 
    Work starts       : 1998. october 10.
    Last modification : 2001. june 29.
 
-  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
-  ş END OF FILE
-  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+  --------------------------------------------------------------------------
+  * END OF FILE
+  --------------------------------------------------------------------------

@@ -1,15 +1,24 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_SET .INC - System Directives Setup File                            ³}
-{³                  Work started     : 1999.05.26.                          ³}
-{³                  Last modification: 2001.06.29.                          ³}
-{³             OS - Platform Independent (GO32V2,EMX tested)                ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
 
-{ ş >>> L O A D E R  S E T T I N G S <<< ş }
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_SET .INC - System Directives Setup File                           }
+{             OS - Platform Independent (GO32V2,EMX tested)               }
+
+{ * >>> L O A D E R  S E T T I N G S <<< * }
 
 {$DEFINE _ISS_LOAD_DEBUGMODE_}
 { DEFINE _ISS_LOAD_NOFILEMODE_}
@@ -21,14 +30,14 @@
 { DEFINE _ISS_S3M_INCLUDE_}
 
 
-{ ş >>> D E V I C E  S E T T I N G S <<< ş }
+{ * >>> D E V I C E  S E T T I N G S <<< * }
 
 {$IFDEF GO32V2}
  {$DEFINE _ISS_GUS_INCLUDE_}
  {$DEFINE _ISS_GUS_DEBUGMODE_}
 
  {$DEFINE _ISS_SB_INCLUDE_}
- { DEFINE _ISS_SB_FORCEDSPVERSION_} { ş Dirty hack, will be removed! ş }
+ { DEFINE _ISS_SB_FORCEDSPVERSION_} { * Dirty hack, will be removed! * }
  {$DEFINE _ISS_SB_DEBUGMODE_}
 
  {$DEFINE _ISS_NSND_INCLUDE_}
@@ -57,18 +66,18 @@
 {$ENDIF}
 
 
-{ ş >>> S O U N D S Y S T E M  S E T T I N G S <<< ş }
+{ * >>> S O U N D S Y S T E M  S E T T I N G S <<< * }
 
 {$DEFINE _ISS_MAIN_DEBUGMODE_}
 
 
-{ ş >>> P L A Y E R  S E T T I N G S <<< ş }
+{ * >>> P L A Y E R  S E T T I N G S <<< * }
 
 {$DEFINE _ISS_PLAY_DEBUGMODE_}
 
 
-{ ş >>> G L O B A L  D E F I N E S <<< ş }
+{ * >>> G L O B A L  D E F I N E S <<< * }
 
-{ ş This is REQUIRED. If the record fields not aligned to WORD, ş }
-{ ş the mixer WILL crash. This may change in the future. ş }
+{ * This is REQUIRED. If the record fields not aligned to WORD, * }
+{ * the mixer WILL crash. This may change in the future. * }
 {$PACKRECORDS 2}

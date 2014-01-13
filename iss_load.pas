@@ -1,13 +1,23 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_LOAD.PAS - High level loading routines                             ³}
-{³                  Work started     : 1999.05.24.                          ³}
-{³                  Last modification: 2001.01.18.                          ³}
-{³             OS - Platform Independent                                    ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_LOAD.PAS - High level loading routines                            }
+{             OS - Platform Independent                                   }
+
 {$INCLUDE ISS_SET.INC}
 {$MODE FPC}
 {$IOCHECKS OFF}
@@ -15,15 +25,15 @@ Unit ISS_Load;
 
 Interface
 
-Uses ISS_Var { ş Uses the system variables and types ş }
+Uses ISS_Var { * Uses the system variables and types * }
      {$IFDEF _ISS_XM_INCLUDE_}
-      ,ISS_XM  { ş Includes the XM loader ş }
+      ,ISS_XM  { * Includes the XM loader * }
      {$ENDIF}
      {$IFDEF _ISS_MOD_INCLUDE_}
-      ,ISS_MOD { ş Includes the MOD loader ş }
+      ,ISS_MOD { * Includes the MOD loader * }
      {$ENDIF}
      {$IFDEF _ISS_S3M_INCLUDE_}
-      ,ISS_S3M { ş Includes the S3M loader ş }
+      ,ISS_S3M { * Includes the S3M loader * }
      {$ENDIF}
      {$IFDEF _ISS_LOAD_IDSMODE_}
       ,IDS_LOAD
@@ -45,10 +55,10 @@ Function ISS_InitLoaders : Boolean;
 
 Implementation
 
-Var ISS_LoaderOK  : Boolean; { ş True if there is an usable loader ş }
-    ISS_LoaderNum : DWord;   { ş Number of loaders ş }
+Var ISS_LoaderOK  : Boolean; { * True if there is an usable loader * }
+    ISS_LoaderNum : DWord;   { * Number of loaders * }
 
-    { ş Loaders ş }
+    { * Loaders * }
     ISS_Loader    : Array[1..ISS_MaxLoaders] Of ISS_PModuleLoader;
 
 
@@ -72,19 +82,19 @@ End;
 {$ENDIF}
 
 {$IFNDEF _ISS_LOAD_NOFILEMODE_}
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ş ISS_LoadModule                                                          ³}
-{³                                                                          ³}
-{³. Description : Opens a module file, reads it to the memory, and calls    ³}
-{³                ISS_LoadInternalModule procedure to load the module to    ³}
-{³                the player. Returns a pointer to the loaded module        ³}
-{³                structure, and the error code.                            ³}
-{³                                                                          ³}
-{³. Parameters  : FileName - [I] The file name of the module to be loaded.  ³}
-{³                Module   - [O] Pointer to the loaded module structure.    ³}
-{³                                                                          ³}
-{³. Returns     : A Boolean value, true if successful, false if not         ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+
+{ * ISS_LoadModule                                                          }
+{                                                                           }
+{ . Description : Opens a module file, reads it to the memory, and calls    }
+{                 ISS_LoadInternalModule procedure to load the module to    }
+{                 the player. Returns a pointer to the loaded module        }
+{                 structure, and the error code.                            }
+{                                                                           }
+{ . Parameters  : FileName - [I] The file name of the module to be loaded.  }
+{                 Module   - [O] Pointer to the loaded module structure.    }
+{                                                                           }
+{ . Returns     : A Boolean value, true if successful, false if not         }
+
 Function ISS_LoadModule(FileName : String; Var Module : ISS_PModule) : Boolean;
 Var ModuleFile : File;
     ModuleSize : DWord;
@@ -92,118 +102,117 @@ Var ModuleFile : File;
 Begin
  ISS_LoadModule:=False;
  If ISS_LoaderOK Then Begin
-   { ş Opening the file ş }
+   { * Opening the file * }
    Assign(ModuleFile, FileName);
    FileMode:=0;
    Reset(ModuleFile,1);
    If IOResult<>0 Then Begin
-     { ş ERROR CODE! ş }
+     { * ERROR CODE! * }
      Close(ModuleFile);
      Exit;
     End;
 
-   { ş Loading the file into memory ş }
+   { * Loading the file into memory * }
    ModuleSize:=FileSize(ModuleFile);
-   GetMem(ModuleMem,ModuleSize);     { ş Allocating memory ş }
-   BlockRead(ModuleFile,ModuleMem^,ModuleSize); { ş Loading file ş }
+   GetMem(ModuleMem,ModuleSize);     { * Allocating memory * }
+   BlockRead(ModuleFile,ModuleMem^,ModuleSize); { * Loading file * }
    If IOResult<>0 Then Begin
-     { ş ERROR CODE! ş }
-     FreeMem(ModuleMem,ModuleSize); { ş Freeing up memory ş }
+     { * ERROR CODE! * }
+     FreeMem(ModuleMem,ModuleSize); { * Freeing up memory * }
      Close(ModuleFile);
      Exit;
     End;
 
-   { ş Loading Module ş }
+   { * Loading Module * }
    ISS_LoadModule:=ISS_LoadInternalModule(ModuleMem,Module);
 
-   FreeMem(ModuleMem,ModuleSize); { ş Freeing up memory ş }
-   Close(ModuleFile); { ş Closing the file ş }
+   FreeMem(ModuleMem,ModuleSize); { * Freeing up memory * }
+   Close(ModuleFile); { * Closing the file * }
 
   End;
 End;
 {$ENDIF}
 
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ş ISS_LoadInternalModule                                                  ³}
-{³                                                                          ³}
-{³. Description : Loads a module from the specified memory area using the   ³}
-{³                low level module loading routines, and returns a pointer  ³}
-{³                to the module structure, and the error code.              ³}
-{³                                                                          ³}
-{³. Parameters  : ModMem - [I] A pointer to the "raw" module to be loaded.  ³}
-{³                Module - [O] Pointer to the loaded module structure.      ³}
-{³                                                                          ³}
-{³. Returns     : A Boolean value, true if successful, false if not         ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{ * ISS_LoadInternalModule                                                  }
+{                                                                           }
+{ . Description : Loads a module from the specified memory area using the   }
+{                 low level module loading routines, and returns a pointer  }
+{                 to the module structure, and the error code.              }
+{                                                                           }
+{ . Parameters  : ModMem - [I] A pointer to the "raw" module to be loaded.  }
+{                 Module - [O] Pointer to the loaded module structure.      }
+{                                                                           }
+{ . Returns     : A Boolean value, true if successful, false if not         }
+
 Function ISS_LoadInternalModule(ModMem : Pointer;
                             Var Module : ISS_PModule) : Boolean;
 Var Counter : DWord;
 Begin
  ISS_LoadInternalModule:=False;
 
- { ş Is the pointer specified free? ş }
+ { * Is the pointer specified free? * }
  If (Module<>Nil) And (Module^.MID=ISS_ModuleID) Then Begin
-   { ş ERROR CODE! ş }
+   { * ERROR CODE! * }
    Exit;
   End;
 
  Module:=Nil;
  If ISS_LoaderOK Then Begin
 
-   { ş Selecting Loader ş }
+   { * Selecting Loader * }
    Counter:=0;
    Repeat
     Inc(Counter);
     If Counter>ISS_LoaderNum Then Begin
-      { ş ERROR CODE! ş }
+      { * ERROR CODE! * }
       Exit;
      End;
     ISS_Loader[Counter]^.ModuleMem:=ModMem;
    Until ISS_Loader[Counter]^.CheckModule();
 
-   { ş Loading Module ş }
+   { * Loading Module * }
    With ISS_Loader[Counter]^ Do Begin
 
      {$IFDEF _ISS_LOAD_DEBUGMODE_}
       DebugInit;
      {$ENDIF}
 
-     New(ModulePtr); { ş Allocating memory for the header ş }
-     If Not LoadHeader() Then Begin { ş Loading Header ş }
-       { ş ERROR CODE! ş }
+     New(ModulePtr); { * Allocating memory for the header * }
+     If Not LoadHeader() Then Begin { * Loading Header * }
+       { * ERROR CODE! * }
        Dispose(ModulePtr);
        Exit;
       End;
-     ModulePtr^.MStatus:=0; { ş Clearing status ş }
+     ModulePtr^.MStatus:=0; { * Clearing status * }
 
-     { ş Allocating pattern header memory ş }
+     { * Allocating pattern header memory * }
      For Counter:=0 To ModulePtr^.MPatternNum Do Begin
        New(ModulePtr^.MPatterns[Counter]);
       End;
-     If Not LoadPatterns() Then Begin { ş Loading Patterns ş }
-       { ş Deallocating pattern header memory if loading failed ş }
+     If Not LoadPatterns() Then Begin { * Loading Patterns * }
+       { * Deallocating pattern header memory if loading failed * }
        For Counter:=0 To ModulePtr^.MPatternNum Do Begin
          Dispose(ModulePtr^.MPatterns[Counter]);
         End;
-       { ş ERROR CODE! ş }
+       { * ERROR CODE! * }
        Dispose(ModulePtr);
        Exit;
       End;
 
-     { ş Allocating instrument header memory ş }
+     { * Allocating instrument header memory * }
      For Counter:=1 To ModulePtr^.MInstrNum Do Begin
        New(ModulePtr^.MInstruments[Counter]);
       End;
-     If Not LoadInstruments() Then Begin { ş Loading Instruments ş }
-       { ş Allocating instrument header memory ş }
+     If Not LoadInstruments() Then Begin { * Loading Instruments * }
+       { * Allocating instrument header memory * }
        For Counter:=1 To ModulePtr^.MInstrNum Do Begin
          Dispose(ModulePtr^.MInstruments[Counter]);
         End;
-       { ş Dellocating pattern header memory if loading failed ş }
+       { * Dellocating pattern header memory if loading failed * }
        For Counter:=0 To ModulePtr^.MPatternNum Do Begin
          Dispose(ModulePtr^.MPatterns[Counter]);
         End;
-       { ş ERROR CODE! ş }
+       { * ERROR CODE! * }
        Dispose(ModulePtr);
        Exit;
       End;
@@ -220,16 +229,15 @@ Begin
   End;
 End;
 
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ş ISS_FreeModule                                                          ³}
-{³                                                                          ³}
-{³. Description : Frees up the memory area allocated by the ISS_LoadModule  ³}
-{³                function. Returns the error code.                         ³}
-{³                                                                          ³}
-{³. Parameters  : Module - [I] Pointer to the loaded module structure.      ³}
-{³                                                                          ³}
-{³. Returns     : A Boolean value, true if successful, false if not         ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{ * ISS_FreeModule                                                          }
+{                                                                           }
+{ . Description : Frees up the memory area allocated by the ISS_LoadModule  }
+{                 function. Returns the error code.                         }
+{                                                                           }
+{ . Parameters  : Module - [I] Pointer to the loaded module structure.      }
+{                                                                           }
+{ . Returns     : A Boolean value, true if successful, false if not         }
+
 Function ISS_FreeModule(Var Module : ISS_PModule) : Boolean;
 Var Counter  : DWord;
     Counter2 : DWord;
@@ -237,9 +245,9 @@ Begin
  ISS_FreeModule:=False;
  If ISS_LoaderOK Then Begin
 
-   { ş Specified pointer not points to a loaded module? ş }
+   { * Specified pointer not points to a loaded module? * }
    If (Module=Nil) Or (Module^.MID<>ISS_ModuleID) Then Begin
-     { ş ERROR CODE! ş }
+     { * ERROR CODE! * }
      Exit;
     End;
 
@@ -249,17 +257,17 @@ Begin
 
    With Module^ Do Begin
 
-     { ş Module is loaded to the player device? ş }
+     { * Module is loaded to the player device? * }
      If MStatus>0 Then Begin
-       { ş ERROR CODE! ş }
+       { * ERROR CODE! * }
        Exit;
       End;
 
-     { ş Freeing up instrument memory ş }
+     { * Freeing up instrument memory * }
      For Counter:=1 To MInstrNum Do Begin
        With MInstruments[Counter]^ Do Begin
 
-         { ş Free up samples memory ş }
+         { * Free up samples memory * }
          If ISampleNum>0 Then Begin
            For Counter2:=0 To ISampleNum-1 Do Begin
              With ISamples[Counter2]^ Do Begin
@@ -273,9 +281,9 @@ Begin
        Dispose(MInstruments[Counter]);
       End;
 
-     { ş Freeing up pattern memory ş }
+     { * Freeing up pattern memory * }
      For Counter:=0 To MPatternNum Do Begin
-       { ş Free up pattern data memory ş }
+       { * Free up pattern data memory * }
        With MPatterns[Counter]^ Do Begin
          FreeMem(PatRows,PatSize);
         End;
@@ -283,8 +291,8 @@ Begin
       End;
     End;
 
-   Module^.MID:='!?!?'; { ş Destroying module ID ş }
-   Dispose(Module);     { ş Freeing up module header ş }
+   Module^.MID:='!?!?'; { * Destroying module ID * }
+   Dispose(Module);     { * Freeing up module header * }
 
    {$IFDEF _ISS_LOAD_DEBUGMODE_}
     WriteLn('DONE.');
@@ -294,7 +302,7 @@ Begin
   End;
 End;
 
-{ ş Initializes the low-level loader routines. ş }
+{ * Initializes the low-level loader routines. * }
 Function ISS_InitLoaders : Boolean;
 Begin
  ISS_LoaderNum:=0;
@@ -319,4 +327,3 @@ End;
 
 Begin
 End.
-{ ş ISS_LOAD.PAS - (C) 1999-2001 Charlie/Inquisition ş }

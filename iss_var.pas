@@ -1,22 +1,32 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_VAR .PAS - System Variables and Types                              ³}
-{³                  Work started     : 2000.10.19.                          ³}
-{³                  Last modification: 2001.06.18.                          ³}
-{³             OS - Platform Independent                                    ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_VAR .PAS - System Variables and Types                             }
+{             OS - Platform Independent                                   }
+
 {$INCLUDE ISS_SET.INC}
 {$MODE FPC}
 Unit ISS_Var;
 
 Interface
 
-Const { ş Main system constants ş }
-      ISS_Version    : DWord = $021;    { ş Version Number ş }
-      ISS_VersionStr : PChar = '0.2.1'; { ş Version Number String ş }
+Const { * Main system constants * }
+      ISS_Version    : DWord = $021;    { * Version Number * }
+      ISS_VersionStr : PChar = '0.2.1'; { * Version Number String * }
 
       {$IFDEF GO32V2}
        ISS_PlatformID  = $0001;
@@ -35,60 +45,60 @@ Const { ş Main system constants ş }
        ISS_PlatformStr = 'Win32';
       {$ENDIF}
 
-      ISS_MaxDevices = 4;  { ş Maximum Number of Devices ş }
-      ISS_MaxLoaders = 1;  { ş Maximum Number of Loaders ş }
+      ISS_MaxDevices = 4;  { * Maximum Number of Devices * }
+      ISS_MaxLoaders = 1;  { * Maximum Number of Loaders * }
 
-      ISS_MaxSSChannels = 32; { ş Sound System Channel Number ş }
-      ISS_MaxPlChannels = 32; { ş Player Channel Number ş }
+      ISS_MaxSSChannels = 32; { * Sound System Channel Number * }
+      ISS_MaxPlChannels = 32; { * Player Channel Number * }
 
-      { ş Tracker IDs (used for playing incompatible effects correctly) ş }
-      ISS_TrackerID_PRO = 1; { ş Protracker ş }
-      ISS_TrackerID_ST3 = 2; { ş ScreamTracker 3.x ş }
-      ISS_TrackerID_FT2 = 3; { ş Fasttracker 2 ş }
+      { * Tracker IDs (used for playing incompatible effects correctly) * }
+      ISS_TrackerID_PRO = 1; { * Protracker * }
+      ISS_TrackerID_ST3 = 2; { * ScreamTracker 3.x * }
+      ISS_TrackerID_FT2 = 3; { * Fasttracker 2 * }
 
-      { ş Device Type Flags ş }
-      ISS_Dev8Bit      =   1; { ş Device supports 8bit output/samples ş }
-      ISS_Dev16Bit     =   2; { ş Device supports 16bit output/samples ş }
-      ISS_DevMono      =   4; { ş Device supports mono output ş }
-      ISS_DevStereo    =   8; { ş Device supports stereo output ş }
-      ISS_DevSigned    =  16; { ş Device supports signed samples ş }
-      ISS_DevUnsigned  =  32; { ş Device supports unsigned samples ş }
-      ISS_DevMixed     =  64; { ş Device supports mixing ş }
-      ISS_DevWaveTable = 128; { ş Device supports wavetable mode ş }
-      ISS_DevDRAM      = 256; { ş Device has on-board DRAM ş }
+      { * Device Type Flags * }
+      ISS_Dev8Bit      =   1; { * Device supports 8bit output/samples * }
+      ISS_Dev16Bit     =   2; { * Device supports 16bit output/samples * }
+      ISS_DevMono      =   4; { * Device supports mono output * }
+      ISS_DevStereo    =   8; { * Device supports stereo output * }
+      ISS_DevSigned    =  16; { * Device supports signed samples * }
+      ISS_DevUnsigned  =  32; { * Device supports unsigned samples * }
+      ISS_DevMixed     =  64; { * Device supports mixing * }
+      ISS_DevWaveTable = 128; { * Device supports wavetable mode * }
+      ISS_DevDRAM      = 256; { * Device has on-board DRAM * }
 
-      { ş Sample Type Consts ş } { ş GUS Values ş }
-      ISS_Smp16BitData    = %00000100; { ş 16bit SampleData ş }
-      ISS_SmpNoLoop       = %00000000; { ş No Looping ş }
-      ISS_SmpForwardLoop  = %00001000; { ş Forward Looping ş }
-      ISS_SmpPingPongLoop = %00011000; { ş Bidirectional Looping ş }
+      { * Sample Type Consts * } { * GUS Values * }
+      ISS_Smp16BitData    = %00000100; { * 16bit SampleData * }
+      ISS_SmpNoLoop       = %00000000; { * No Looping * }
+      ISS_SmpForwardLoop  = %00001000; { * Forward Looping * }
+      ISS_SmpPingPongLoop = %00011000; { * Bidirectional Looping * }
 
-      { ş Virtual Channel Control Flags ş }
-      ISS_CCActive       =   1; { ş Channel Activity Flag             (0) ş }
-      ISS_CCStop         =   2; { ş Stop Channel                      (1) ş }
-      ISS_CCSample       =   4; { ş Change Channel Sample             (2) ş }
-      ISS_CCVolume       =   8; { ş Change Channel Volume             (3) ş }
-      ISS_CCPeriod       =  16; { ş Change Channel Period             (4) ş }
-      ISS_CCPanning      =  32; { ş Change Channel Panning            (5) ş }
-      ISS_CCVolFadeOut   =  64; { ş Volume Fadeout in progress        (6) ş }
+      { * Virtual Channel Control Flags * }
+      ISS_CCActive       =   1; { * Channel Activity Flag             (0) * }
+      ISS_CCStop         =   2; { * Stop Channel                      (1) * }
+      ISS_CCSample       =   4; { * Change Channel Sample             (2) * }
+      ISS_CCVolume       =   8; { * Change Channel Volume             (3) * }
+      ISS_CCPeriod       =  16; { * Change Channel Period             (4) * }
+      ISS_CCPanning      =  32; { * Change Channel Panning            (5) * }
+      ISS_CCVolFadeOut   =  64; { * Volume Fadeout in progress        (6) * }
 
-      { ş Frequency Mode Flags ş }
-      ISS_AmigaFreq      =  0; { ş Amiga Frequency Mode (MOD,XM) ş }
-      ISS_LinearFreq     =  1; { ş Linear Frequency Mode (XM) ş }
+      { * Frequency Mode Flags * }
+      ISS_AmigaFreq      =  0; { * Amiga Frequency Mode (MOD,XM) * }
+      ISS_LinearFreq     =  1; { * Linear Frequency Mode (XM) * }
 
-      { ş Envelope Type Flags ş }
-      ISS_EnvEnabled     = 1; { ş Envelope Enabled ş }
-      ISS_EnvSustain     = 2; { ş Envelope Sustain ş }
-      ISS_EnvLoop        = 4; { ş Envelope Looped ş }
+      { * Envelope Type Flags * }
+      ISS_EnvEnabled     = 1; { * Envelope Enabled * }
+      ISS_EnvSustain     = 2; { * Envelope Sustain * }
+      ISS_EnvLoop        = 4; { * Envelope Looped * }
 
-      { ş Internal Module ID ş }
+      { * Internal Module ID * }
       ISS_ModuleID = 'INQM';
 
-      { ş Internal Module Status Flags ş }
-      ISS_StLoaded       = 1; { ş Module loaded to device ş }
-      ISS_StPlaying      = 2; { ş Module currently playing ş }
+      { * Internal Module Status Flags * }
+      ISS_StLoaded       = 1; { * Module loaded to device * }
+      ISS_StPlaying      = 2; { * Module currently playing * }
 
-      { ş Amiga Period Table (The one from the XM documentation.) ş }
+      { * Amiga Period Table (The one from the XM documentation.) * }
       ISS_AmigaPeriodTable : Array[0..12*8-1] Of Word = (
           907,900,894,887,881,875,868,862,856,850,844,838,832,826,820,814,
           808,802,796,791,785,779,774,768,762,757,752,746,741,736,730,725,
@@ -97,7 +107,7 @@ Const { ş Main system constants ş }
           570,567,563,559,555,551,547,543,538,535,532,528,524,520,516,513,
           508,505,502,498,494,491,487,484,480,477,474,470,467,463,460,457);
 
-      { ş Sinus Table used by vibrato and tremolo ş }
+      { * Sinus Table used by vibrato and tremolo * }
       ISS_SineTable : Array[0..127] Of Integer = (
              0,  6, 12, 18, 24, 31, 37, 43, 49, 55, 61, 68, 74, 79, 85, 91,
             97,103,109,114,120,125,131,136,141,146,151,156,161,166,171,175,
@@ -109,233 +119,232 @@ Const { ş Main system constants ş }
             97, 91, 85, 79 ,74, 68, 61, 55, 49, 43, 37, 31, 24, 18, 12,  6);
 
 
-Type  { ş >>> D A T A  T Y P E S <<< ş }
+Type  { * >>> D A T A  T Y P E S <<< * }
 
-      { ş Internal Pattern Row Format (Same as used by FT2) ş }
+      { * Internal Pattern Row Format (Same as used by FT2) * }
       ISS_TPatternRow = Record
-        RNote   : Byte; { ş Note (0-71) 0 = C-0 ş }
-        RInstr  : Byte; { ş Instrument Number (0-128) ş }
-        RVolCol : Byte; { ş Volume Column Byte ş }
-        RFXType : Byte; { ş Effect Type ş }
-        RFXParm : Byte; { ş Effect Parameter ş }
+        RNote   : Byte; { * Note (0-71) 0 = C-0 * }
+        RInstr  : Byte; { * Instrument Number (0-128) * }
+        RVolCol : Byte; { * Volume Column Byte * }
+        RFXType : Byte; { * Effect Type * }
+        RFXParm : Byte; { * Effect Parameter * }
        End;
       ISS_PPatternRow = ^ISS_TPatternRow;
 
-      { ş Internal Pattern Format ş }
+      { * Internal Pattern Format * }
       ISS_TPattern = Record
-        PatRowsNum : Word;    { ş Number of Rows in the Pattern ş }
-        PatSize    : DWord;   { ş Pattern Data Size ş }
-        PatRows    : Pointer; { ş Pointer to XM-Packed Pattern Data ş }
+        PatRowsNum : Word;    { * Number of Rows in the Pattern * }
+        PatSize    : DWord;   { * Pattern Data Size * }
+        PatRows    : Pointer; { * Pointer to XM-Packed Pattern Data * }
        End;
       ISS_PPattern = ^ISS_TPattern;
 
-      { ş Internal Sample Format ş }
+      { * Internal Sample Format * }
       ISS_TSample = Record
-        SName      : Array[0..21] Of Char; { ş Sample Name ş }
-        SLength    : DWord; { ş Sample Length ş }
-        SLoopStart : DWord; { ş Sample Loop Start ş }
-        SLoopEnd   : DWord; { ş Sample Loop End ş }
-        SVolume    : Byte;  { ş Sample Volume ş }
-        SFineTune  : ShortInt; { ş Sample FineTune (signed byte -16..+15) ş }
-        SType      : Byte;  { ş Sample Type ş }
-        SPanning   : Byte;  { ş Sample Panning ş }
-        SRelNote   : ShortInt;  { ş Sample Relative Note (signed byte) ş }
-        SData      : Pointer; { ş Pointer to the sample data ş }
-        SDRAMOffs  : DWord; { ş Sample Offset in Wavetable DRAM ş }
+        SName      : Array[0..21] Of Char; { * Sample Name * }
+        SLength    : DWord; { * Sample Length * }
+        SLoopStart : DWord; { * Sample Loop Start * }
+        SLoopEnd   : DWord; { * Sample Loop End * }
+        SVolume    : Byte;  { * Sample Volume * }
+        SFineTune  : ShortInt; { * Sample FineTune (signed byte -16..+15) * }
+        SType      : Byte;  { * Sample Type * }
+        SPanning   : Byte;  { * Sample Panning * }
+        SRelNote   : ShortInt;  { * Sample Relative Note (signed byte) * }
+        SData      : Pointer; { * Pointer to the sample data * }
+        SDRAMOffs  : DWord; { * Sample Offset in Wavetable DRAM * }
        End;
       ISS_PSample = ^ISS_TSample;
 
-      { ş An Envelope Point ş }
+      { * An Envelope Point * }
       ISS_TEnvPoint = Record
-        EPPosition  : Word; { ş Position of This Envelope Point ş }
-        EPValue     : Word; { ş Envelope Value at this Point ş }
+        EPPosition  : Word; { * Position of This Envelope Point * }
+        EPValue     : Word; { * Envelope Value at this Point * }
        End;
 
-      { ş Internal Envelope Format ş }
+      { * Internal Envelope Format * }
       ISS_TEnvelope = Record
-        EnvType      : Byte; { ş Envelope Type ş }
-        EnvPointsNum : Byte; { ş Number Of Envelope Points ş }
-        EnvSustain   : Byte; { ş Envelope Sustain Point ş }
-        EnvLoopStart : Byte; { ş Envelope Loop Start Point ş }
-        EnvLoopEnd   : Byte; { ş Envelope Loop End Point ş }
-        EnvPoints    : Array[0..11] Of ISS_TEnvPoint; { ş Envelope Points ş }
+        EnvType      : Byte; { * Envelope Type * }
+        EnvPointsNum : Byte; { * Number Of Envelope Points * }
+        EnvSustain   : Byte; { * Envelope Sustain Point * }
+        EnvLoopStart : Byte; { * Envelope Loop Start Point * }
+        EnvLoopEnd   : Byte; { * Envelope Loop End Point * }
+        EnvPoints    : Array[0..11] Of ISS_TEnvPoint; { * Envelope Points * }
        End;
 
-      { ş Internal Instrument Format ş }
+      { * Internal Instrument Format * }
       ISS_TInstrument = Record
-        IName : Array[0..31] Of Char; { ş Instrument Name ş }
+        IName : Array[0..31] Of Char; { * Instrument Name * }
 
-        INoteTable : Array[1..96] Of Byte; { ş Sample Number for all notes ş }
+        INoteTable : Array[1..96] Of Byte; { * Sample Number for all notes * }
 
-        IVolumeEnv  : ISS_TEnvelope; { ş Volume Envelope Data ş }
-        IPanningEnv : ISS_TEnvelope; { ş Panning Envelope Data ş }
+        IVolumeEnv  : ISS_TEnvelope; { * Volume Envelope Data * }
+        IPanningEnv : ISS_TEnvelope; { * Panning Envelope Data * }
 
-        IVibType    : Byte; { ş Vibrato Type ş }
-        IVibSweep   : Byte; { ş Vibrato Sweep ş }
-        IVibDepth   : Byte; { ş Vibrato Depth ş }
-        IVibRate    : Byte; { ş Vibrato Rate ş }
+        IVibType    : Byte; { * Vibrato Type * }
+        IVibSweep   : Byte; { * Vibrato Sweep * }
+        IVibDepth   : Byte; { * Vibrato Depth * }
+        IVibRate    : Byte; { * Vibrato Rate * }
 
-        IVolFadeOut : Word; { ş Volume FadeOut ş }
+        IVolFadeOut : Word; { * Volume FadeOut * }
 
-        ISampleNum : Word; { ş Number Of Samples in the Instrument ş }
-        ISamples   : Array[0..15] Of ISS_PSample; { ş Pointer to Sample ş }
+        ISampleNum : Word; { * Number Of Samples in the Instrument * }
+        ISamples   : Array[0..15] Of ISS_PSample; { * Pointer to Sample * }
        End;
       ISS_PInstrument = ^ISS_TInstrument;
 
-      { ş Internal Module Format Header ş }
+      { * Internal Module Format Header * }
       ISS_TModule = Record
-        MID      : Array[0..3] Of Char; { ş Module ID. See the const above ş }
-        MTitle   : String[32]; { ş Title of the Module ş }
-        MStatus  : Word; { ş Status bits of the module ş }
+        MID      : Array[0..3] Of Char; { * Module ID. See the const above * }
+        MTitle   : String[32]; { * Title of the Module * }
+        MStatus  : Word; { * Status bits of the module * }
 
-        MFlags   : Word; { ş Module Flags ş }
-        MTracker : Word; { ş Original Tracker (File Format) ş }
+        MFlags   : Word; { * Module Flags * }
+        MTracker : Word; { * Original Tracker (File Format) * }
 
-        MChannels   : Word; { ş Number of Channels in the Module ş }
-        MPatternNum : Word; { ş Number of Patterns in the Module ş }
-        MSampleNum  : Word; { ş Number of Samples in the Module ş }
-        MInstrNum   : Word; { ş Number of Instruments in the Module ş }
+        MChannels   : Word; { * Number of Channels in the Module * }
+        MPatternNum : Word; { * Number of Patterns in the Module * }
+        MSampleNum  : Word; { * Number of Samples in the Module * }
+        MInstrNum   : Word; { * Number of Instruments in the Module * }
 
-        MSongLength : Word; { ş Song Length (Orders Num) ş }
-        MRestart    : Word; { ş Song Restart Position (Order Num) ş }
-        MOrders     : Array[0..255] Of Byte; { ş Pattern Order Table ş }
-        MPatterns   : Array[0..255] Of ISS_PPattern; { ş Ptrs to patterns ş }
+        MSongLength : Word; { * Song Length (Orders Num) * }
+        MRestart    : Word; { * Song Restart Position (Order Num) * }
+        MOrders     : Array[0..255] Of Byte; { * Pattern Order Table * }
+        MPatterns   : Array[0..255] Of ISS_PPattern; { * Ptrs to patterns * }
 
-        MTempo   : Byte; { ş Default Speed ş }
-        MBPM     : Byte; { ş Default Tempo (BPM) ş }
+        MTempo   : Byte; { * Default Speed * }
+        MBPM     : Byte; { * Default Tempo (BPM) * }
 
-        { ş Pointers to instruments ş }
+        { * Pointers to instruments * }
         MInstruments : Array[1..128] Of ISS_PInstrument;
 
        End;
       ISS_PModule = ^ISS_TModule;
 
 
-      { ş >>> V I R T U A L  S O U N D  D E V I C E <<< ş }
+      { * >>> V I R T U A L  S O U N D  D E V I C E <<< * }
 
-      { ş A Virtual Device Channel ş }
+      { * A Virtual Device Channel * }
       ISS_TVirtualChannel = Record
-        VChControl : DWord;  { ş Device Controller Bits (See flags above) ş }
+        VChControl : DWord;  { * Device Controller Bits (See flags above) * }
 
-        VChFreq    : DWord; { ş Frequency for this device channel ş }
-        VChPeriod  : DWord; { ş Note Period ş }
+        VChFreq    : DWord; { * Frequency for this device channel * }
+        VChPeriod  : DWord; { * Note Period * }
 
-        VChSmpAddr : ISS_PSample; { ş Sample Structure Address ş }
-        VChInsAddr : ISS_PInstrument; { ş Instrument Structure Address ş }
-        VChSmpOffs : DWord; { ş Sample Start Offset (FX:SetSampOffs) ş }
+        VChSmpAddr : ISS_PSample; { * Sample Structure Address * }
+        VChInsAddr : ISS_PInstrument; { * Instrument Structure Address * }
+        VChSmpOffs : DWord; { * Sample Start Offset (FX:SetSampOffs) * }
 
-        VChVolume      : Byte;  { ş Virtual Channel Volume (0-64) ş }
-        VChFinalVolume : Byte;  { ş Final Volume (after instr+etc) (0-64) ş }
-        VChMute        : Boolean; { ş Force Volume 0 on the channel ş }
+        VChVolume      : Byte;  { * Virtual Channel Volume (0-64) * }
+        VChFinalVolume : Byte;  { * Final Volume (after instr+etc) (0-64) * }
+        VChMute        : Boolean; { * Force Volume 0 on the channel * }
 
-        VChPanning      : Byte; { ş Virtual Channel Panning ş }
-        VChFinalPanning : Byte; { ş Final Panning (after instr+etc) ş }
-        VChForceMono    : Boolean; { ş Disable Panning ş }
+        VChPanning      : Byte; { * Virtual Channel Panning * }
+        VChFinalPanning : Byte; { * Final Panning (after instr+etc) * }
+        VChForceMono    : Boolean; { * Disable Panning * }
 
-        VChFadeOutVolume : Word; { ş Envelope : Volume Fadeout ş }
-        VChEnvVolume     : Byte; { ş Envelope : Volume (0-64) ş }
-        VChEnvVolPoint   : Byte; { ş Envelope : Current Vol Env Point ş }
-        VChEnvVolPos     : Word; { ş Envelope : Current Vol Env Position ş }
+        VChFadeOutVolume : Word; { * Envelope : Volume Fadeout * }
+        VChEnvVolume     : Byte; { * Envelope : Volume (0-64) * }
+        VChEnvVolPoint   : Byte; { * Envelope : Current Vol Env Point * }
+        VChEnvVolPos     : Word; { * Envelope : Current Vol Env Position * }
 
-        VChEnvPanning    : Byte; { ş Envelope : Panning (0-32) ş }
-        VChEnvPanPoint   : Byte; { ş Envelope : Current Pan Env Point ş }
-        VChEnvPanPos     : Word; { ş Envelope : Current Pan Env Position ş }
+        VChEnvPanning    : Byte; { * Envelope : Panning (0-32) * }
+        VChEnvPanPoint   : Byte; { * Envelope : Current Pan Env Point * }
+        VChEnvPanPos     : Word; { * Envelope : Current Pan Env Position * }
 
-        VChAVibPos       : Byte;  { ş Autovibrato : Position ş }
-        VChAVibSwpPos    : Byte; { ş Autovibrato : Sweep Position ş }
-        VChAVibPitch     : Integer; { ş Autovibrato : Final pitch ş }
+        VChAVibPos       : Byte;  { * Autovibrato : Position * }
+        VChAVibSwpPos    : Byte; { * Autovibrato : Sweep Position * }
+        VChAVibPitch     : Integer; { * Autovibrato : Final pitch * }
 
-        { ş Debug Variables. Will be removed soon. ş }
+        { * Debug Variables. Will be removed soon. * }
         VChDebug1  : DWord;
         VChDebug2  : DWord;
         VChDebug3  : DWord;
 
        End;
 
-      { ş Virtual Channels For Devices ş }
+      { * Virtual Channels For Devices * }
       ISS_TVirtualChannels = Array[0..ISS_MaxSSChannels-1]
                              Of ISS_TVirtualChannel;
       ISS_PVirtualChannels = ^ISS_TVirtualChannels;
 
-      { ş >>> S Y S T E M  S T R U C T U R E S <<< ş }
+      { * >>> S Y S T E M  S T R U C T U R E S <<< * }
 
-      { ş Low-Level Loader Routines ş }
+      { * Low-Level Loader Routines * }
       ISS_TModuleLoader = Record
-        { ş Variables ş }
-        ModuleMem  : Pointer; { ş Pointer to the current 'raw' module ş }
-        ModulePtr  : ISS_PModule; { ş Pointer to the loaded module ş }
-        ErrorCode  : DWord;  { ş The last error code ş }
-        { ş Procedures ş }
-        DebugInit  : Procedure; { ş Inits the loader debug routinesş }
-        DebugDone  : Procedure; { ş Shuts down the loader debug routines ş }
-        { ş Returns true if the module is possible to load with the loader ş }
+        { * Variables * }
+        ModuleMem  : Pointer; { * Pointer to the current 'raw' module * }
+        ModulePtr  : ISS_PModule; { * Pointer to the loaded module * }
+        ErrorCode  : DWord;  { * The last error code * }
+        { * Procedures * }
+        DebugInit  : Procedure; { * Inits the loader debug routines* }
+        DebugDone  : Procedure; { * Shuts down the loader debug routines * }
+        { * Returns true if the module is possible to load with the loader * }
         CheckModule     : Function : Boolean;
-        LoadHeader      : Function : Boolean; { ş Loads the header ş }
-        LoadPatterns    : Function : Boolean; { ş Loads the patterns ş }
-        LoadInstruments : Function : Boolean; { ş Loads the instruments ş }
+        LoadHeader      : Function : Boolean; { * Loads the header * }
+        LoadPatterns    : Function : Boolean; { * Loads the patterns * }
+        LoadInstruments : Function : Boolean; { * Loads the instruments * }
        End;
       ISS_PModuleLoader = ^ISS_TModuleLoader;
 
-      { ş Low-Level Device Routines ş }
-      ISS_TSoundDriver = Record { ş Pointers for the player ş }
-        Detect     : Function : Boolean; { ş True if device is available ş }
-        Init       : Function : Boolean; { ş True if device init success ş }
-        Done       : Function : Boolean; { ş True if device close success ş }
+      { * Low-Level Device Routines * }
+      ISS_TSoundDriver = Record { * Pointers for the player * }
+        Detect     : Function : Boolean; { * True if device is available * }
+        Init       : Function : Boolean; { * True if device init success * }
+        Done       : Function : Boolean; { * True if device close success * }
         LoadSample : Function(SStruc : ISS_PSample) : Boolean;
         FreeSample : Function(SStruc : ISS_PSample) : Boolean;
         SetVolume  : Function(Volume : DWord) : Boolean;
         StartOut   : Function(PeriodicCall  : Pointer) : Boolean;
         StopOut    : Function(PeriodicCall : Pointer) : Boolean;
-        UpdateOut  : Procedure; { ş Updates the sound output ş }
+        UpdateOut  : Procedure; { * Updates the sound output * }
        End;
       ISS_PSoundDriver = ^ISS_TSoundDriver;
 
-      { ş Device Parameter Record ş }
-      ISS_TSoundDevice = Record { ş Contains standard device-handling ş }
-        DevDriver   : ISS_PSoundDriver; { ş Device handler procedures ş }
-        DevAvail    : Boolean; { ş True if device is available ş }
-        DevName     : String; { ş Name of the device ş }
-        DevHWVer    : String; { ş Hardware version string (eg. SB DSP ver) ş }
-        DevSWVer    : String; { ş Software version string (eg. OS/2 driver version) ş }
-        DevType     : Word;   { ş Type of the device (see device flags) ş }
-        DevBaseport : Word;   { ş Baseport ş }
-        DevIRQ      : Byte;   { ş IRQ number ş }
-        DevDMA1     : Byte;   { ş DMA channel 1 ş }
-        DevDMA2     : Byte;   { ş DMA channel 2 ş }
-        DevDRAMSize : DWord;  { ş Size of On-board memory in bytes ş }
-        DevFreq     : Word;   { ş Maximum available playing frequency ş }
-        DevMaxChan  : Word;   { ş Maximum number of channels available ş }
-        DevMixRate  : Word;   { ş The mixrate the device currently using ş }
-        DevMode     : Word;   { ş Mode the device using (devtype flags!) ş }
+      { * Device Parameter Record * }
+      ISS_TSoundDevice = Record { * Contains standard device-handling * }
+        DevDriver   : ISS_PSoundDriver; { * Device handler procedures * }
+        DevAvail    : Boolean; { * True if device is available * }
+        DevName     : String; { * Name of the device * }
+        DevHWVer    : String; { * Hardware version string (eg. SB DSP ver) * }
+        DevSWVer    : String; { * Software version string (eg. OS/2 driver version) * }
+        DevType     : Word;   { * Type of the device (see device flags) * }
+        DevBaseport : Word;   { * Baseport * }
+        DevIRQ      : Byte;   { * IRQ number * }
+        DevDMA1     : Byte;   { * DMA channel 1 * }
+        DevDMA2     : Byte;   { * DMA channel 2 * }
+        DevDRAMSize : DWord;  { * Size of On-board memory in bytes * }
+        DevFreq     : Word;   { * Maximum available playing frequency * }
+        DevMaxChan  : Word;   { * Maximum number of channels available * }
+        DevMixRate  : Word;   { * The mixrate the device currently using * }
+        DevMode     : Word;   { * Mode the device using (devtype flags!) * }
        End;
       ISS_PSoundDevice = ^ISS_TSoundDevice;
 
-Var ISS_ErrorCode : DWord;  { ş Contains Latest Error Number ş }
+Var ISS_ErrorCode : DWord;  { * Contains Latest Error Number * }
 
-    { ş Difference between the timer ticks, can be used for player sync ş }
+    { * Difference between the timer ticks, can be used for player sync * }
     ISS_TimerDiff : DWord;
 
     ISS_TimerFreq : DWord;
 
-    { ş Virtual Sound Device ş }
+    { * Virtual Sound Device * }
     ISS_VirtualChannels : ISS_PVirtualChannels;
 
-    { ş The module currently playing ş }
+    { * The module currently playing * }
     ISS_CurrentModule : ISS_PModule;
 
-    { ş Active channel numbers ş }
+    { * Active channel numbers * }
     ISS_ActiveSSChannels : Word;
     ISS_ActivePlChannels : Word;
 
-    { ş Global Volumes ş }
-    ISS_GlobalSSVolume : Byte; { ş System Volume ş }
-    ISS_GlobalPlVolume : Byte; { ş Player Volume ş }
+    { * Global Volumes * }
+    ISS_GlobalSSVolume : Byte; { * System Volume * }
+    ISS_GlobalPlVolume : Byte; { * Player Volume * }
 
 Implementation
 
 Begin
- { ş Setting variable defaults ş }
+ { * Setting variable defaults * }
  ISS_ActiveSSChannels:=0;
  ISS_ActivePlChannels:=0;
 End.
-{ ş ISS_VAR.PAS - (C) 1999-2001 Charlie/Inquisition ş }

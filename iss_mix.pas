@@ -1,18 +1,27 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_MIX .PAS - Software mixer for non-wavetable devices                ³}
-{³                  Work started     : 2000.05.14.                          ³}
-{³                  Last modification: 2001.06.18.                          ³}
-{³             OS - Platform Independent                                    ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş NOTE: The code contained by this unit is in ALPHA stage. May, and WILL ³}
-{³         change without warning. Make sure your own software don't rely   ³}
-{³         on this code.                                                    ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_MIX .PAS - Software mixer for non-wavetable devices               }
+{             OS - Platform Independent                                   }
+
+{ * NOTE: The code contained by this unit is in ALPHA stage. May and WILL }
+{         change without warning. Make sure your own software don't rely  }
+{         on this code.                                                   }
+
 {$INCLUDE ISS_SET.INC}
 {$ASMMODE INTEL}
 {$MODE FPC}
@@ -24,7 +33,7 @@ Uses ISS_Var;
 
 Type ISS_TMixChannel = Record
        MixSmpPtr  : ISS_PSample;
-       MixSmpPos  : DWord; { ş Current sample position ş }
+       MixSmpPos  : DWord; { * Current sample position * }
        MixSmpRate : DWord;
        MixSmpHighStep : DWord;
        MixSmpLowStep  : DWord;
@@ -37,16 +46,16 @@ Type ISS_TMixChannel = Record
       End;
 
      ISS_TMixer = Record
-       MixRate      : DWord;   { ş Mixing rate ş }
-       MixBufSize   : DWord;   { ş Mixing buffer size ş }
-       MixBufCount  : DWord;   { ş Current bufferpos counter ş }
-       MixBufPtr    : Pointer; { ş Address of the buffer ş }
-       MixLenPos    : DWord;   { ş Current position between the syscalls ş }
-       MixBufOffs   : DWord;   { ş Mixer targetbuffer offset ş }
-       MixBufSel    : Word;    { ş Mixer targetbuffer selector ş }
-       MixBufType   : Word;    { ş Mixer targetbuffer type ş }
-       MixRevStereo : Boolean; { ş Reversing stereo ş }
-       { ş Independent data for each channel ş }
+       MixRate      : DWord;   { * Mixing rate * }
+       MixBufSize   : DWord;   { * Mixing buffer size * }
+       MixBufCount  : DWord;   { * Current bufferpos counter * }
+       MixBufPtr    : Pointer; { * Address of the buffer * }
+       MixLenPos    : DWord;   { * Current position between the syscalls * }
+       MixBufOffs   : DWord;   { * Mixer targetbuffer offset * }
+       MixBufSel    : Word;    { * Mixer targetbuffer selector * }
+       MixBufType   : Word;    { * Mixer targetbuffer type * }
+       MixRevStereo : Boolean; { * Reversing stereo * }
+       { * Independent data for each channel * }
        MixChannels : Array[0..ISS_MaxSSChannels-1] Of ISS_TMixChannel;
       End;
      ISS_PMixer = ^ISS_TMixer;
@@ -90,7 +99,7 @@ Begin
  With ISS_MixerData^ Do Begin
    MixRate:=MixFreq;
    MixBufSize:=BufSize;
-   { ş Allocating Memory for mixer buffer ş }
+   { * Allocating Memory for mixer buffer * }
    GetMem(MixBufPtr,MixBufSize*8);
    MixBufOffs:=TOffset;
    MixBufSel:=TSelector;
@@ -109,7 +118,7 @@ Begin
  If Not ISS_MixerOK Then Exit;
 
  With ISS_MixerData^ Do Begin
-   { ş Freeing up memory for mixer buffer ş }
+   { * Freeing up memory for mixer buffer * }
    FreeMem(MixBufPtr,MixBufSize*8);
   End;
 
@@ -129,17 +138,17 @@ Var SmpRealLength : DWord;
 Begin
  ISS_MixerLoadSample:=False;
  With SStruc^ Do Begin
-   { ş Unrolling bidirectional loops, so main mixing routine will be ş }
-   { ş much simpler (and faster) ş }
+   { * Unrolling bidirectional loops, so main mixing routine will be * }
+   { * much simpler (and faster) * }
    If (SType And (ISS_SmpPingPongLoop-ISS_SmpForwardLoop))>0 Then Begin
 
-     { ş Calculating unrolled sample size ş }
+     { * Calculating unrolled sample size * }
      SmpLoopLength:=SLoopEnd-SLoopStart;
      SmpRealLength:=SLoopEnd+SmpLoopLength;
-     { ş Allocating memory ş }
+     { * Allocating memory * }
      GetMem(SmpPointer,SmpRealLength); If SmpPointer=Nil Then Exit;
 
-     { ş Unrolling loop ş }
+     { * Unrolling loop * }
      If (SType And ISS_Smp16BitData)>0 Then Begin
        For Counter:=0 To (SLoopEnd Div 2)-1 Do Begin
          PInteger(SmpPointer)[Counter]:=PInteger(SData)[Counter];
@@ -156,15 +165,15 @@ Begin
         End;
       End;
 
-     { ş Converting loop values ş }
+     { * Converting loop values * }
      SLoopEnd:=SLoopEnd+SmpLoopLength;
 
-     { ş When unrolling is done, we assign the samplepointer ş }
+     { * When unrolling is done, we assign the samplepointer * }
      SDRAMOffs:=DWord(SmpPointer);
 
     End Else Begin
-     { ş If there is no bidi loop, it's not needed to unroll the sampledata ş }
-     { ş so we simply assign the pointer ş }
+     { * If there is no bidi loop, it's not needed to unroll the sampledata * }
+     { * so we simply assign the pointer * }
      SDRAMOffs:=DWord(SData);
     End;
   End;
@@ -178,10 +187,10 @@ Var SmpRealLength : DWord;
 Begin
  ISS_MixerFreeSample:=False;
  With SStruc^ Do Begin
-   { ş We only free up the samples with unrolled loops ş }
+   { * We only free up the samples with unrolled loops * }
    If (SType And (ISS_SmpPingPongLoop-ISS_SmpForwardLoop))>0 Then Begin
 
-     { ş Calculating rolled sample size ş }
+     { * Calculating rolled sample size * }
      SmpLoopLength:=SLoopEnd-SLoopStart;
      SmpLoopLength:=SmpLoopLength Div 2;
      SLoopEnd:=SLoopStart+SmpLoopLength;
@@ -191,7 +200,7 @@ Begin
      SDRAMOffs:=0;
      If SmpPointer=Nil Then Exit;
 
-     { ş Deallocating memory ş }
+     { * Deallocating memory * }
      FreeMem(SmpPointer,SmpRealLength);
 
     End;
@@ -199,14 +208,14 @@ Begin
  ISS_MixerFreeSample:=True;
 End;
 
-{ ş >>> A D D I T I O N A L  M I X I N G  F U N C T I O N S ş <<< }
+{ * >>> A D D I T I O N A L  M I X I N G  F U N C T I O N S * <<< }
 
 Procedure ISS_MixerClearBuffer(OutputType : Word); Assembler;
 Asm
  PUSHF
  MOV EDX,ISS_MixerData
- MOV EDI,[EDX+12] { ş MixBufPtr ş }
- MOV ECX,[EDX+4]  { ş MixBufSize ş }
+ MOV EDI,[EDX+12] { * MixBufPtr * }
+ MOV ECX,[EDX+4]  { * MixBufSize * }
 
  MOVZX EAX,OutputType
  AND EAX,ISS_DevStereo
@@ -221,25 +230,25 @@ Asm
 End;
 
 
-{ ş Possible buffer conversions ş }
-{ ş 16bit signed -> 16bit signed (no conversion) ş }
-{ ş 16bit signed -> 8bit signed ş }
-{ ş 16bit signed -> 8bit unsigned ş }
+{ * Possible buffer conversions * }
+{ * 16bit signed -> 16bit signed (no conversion) * }
+{ * 16bit signed -> 8bit signed * }
+{ * 16bit signed -> 8bit unsigned * }
 
 Procedure ISS_MixerMakeClip(OutputType : Word); Assembler;
 Asm
  PUSH GS
  MOV EDX,ISS_MixerData
- MOV AX,[EDX+24]  { ş MixBufSel ş }
+ MOV AX,[EDX+24]  { * MixBufSel * }
  CMP AX,0
  JNE @NonZeroSelector
   MOV AX,DS
 
  @NonZeroSelector:
  MOV GS,AX
- MOV ECX,[EDX+4]  { ş MixBufSize ş }
- MOV ESI,[EDX+12] { ş MixBufPtr ş }
- MOV EDI,[EDX+20] { ş MixBufOffs ş }
+ MOV ECX,[EDX+4]  { * MixBufSize * }
+ MOV ESI,[EDX+12] { * MixBufPtr * }
+ MOV EDI,[EDX+20] { * MixBufOffs * }
 
  MOVZX EAX,OutputType
  TEST  EAX,ISS_DevStereo
@@ -250,7 +259,7 @@ Asm
  TEST EAX,ISS_Dev16Bit
  JZ   @Dev8Bit
 
- @LoopHead16Bit: { ş 16bit signed -> 16bit signed ş }
+ @LoopHead16Bit: { * 16bit signed -> 16bit signed * }
 
   MOV EAX,[ESI]
   SAR EAX,8
@@ -276,7 +285,7 @@ Asm
  TEST EAX,ISS_DevSigned
  JZ   @LoopHead8BitUnsigned
 
- @LoopHead8BitSigned:   { ş 16bit signed -> 8bit signed ş }
+ @LoopHead8BitSigned:   { * 16bit signed -> 8bit signed * }
 
   MOV EAX,[ESI]
   SAR EAX,8
@@ -297,7 +306,7 @@ Asm
  JNZ @LoopHead8BitSigned
  JMP @Exit
 
- @LoopHead8BitUnsigned: { ş 16Bit signed -> 8bit unsigned ş }
+ @LoopHead8BitUnsigned: { * 16Bit signed -> 8bit unsigned * }
 
   MOV EAX,[ESI]
   SAR EAX,8
@@ -323,64 +332,64 @@ Asm
 End;
 
 
-{ ş >>> S T E R E O  M I X I N G  F U N C T I O N S <<< ş }
+{ * >>> S T E R E O  M I X I N G  F U N C T I O N S <<< * }
 
-{ ş Mixes a 8bit sample into a stereo buffer ş }
+{ * Mixes a 8bit sample into a stereo buffer * }
 Function MixChannel8BitSampleSTEREO(MChIndexPtr : Pointer) : DWord; Assembler;
 Var MixCounter     : DWord;
 Asm
  MOV   ESI,MChIndexPtr
  MOV   MixCounter,0
 
- MOV   ECX,[ESI+4]   { ş MixSmpPos ş }
+ MOV   ECX,[ESI+4]   { * MixSmpPos * }
  @LoopHead:
 
-  { ş Getting out samplevalue ş }
-  MOV   EDX,[ESI]     { ş MixSmpPtr ş }
-  MOV   EDI,[EDX+44]  { ş SDRAMOffs ş }
+  { * Getting out samplevalue * }
+  MOV   EDX,[ESI]     { * MixSmpPtr * }
+  MOV   EDI,[EDX+44]  { * SDRAMOffs * }
   MOVSX EAX,BYTE PTR [EDI+ECX]
   SAL   EAX,8
 
-  { ş Mix sample with volume ş }
+  { * Mix sample with volume * }
   MOV   EBX,EAX
-  MOVZX EDX,WORD PTR [ESI+28]  { ş MixSmpVolL ş }
+  MOVZX EDX,WORD PTR [ESI+28]  { * MixSmpVolL * }
   IMUL  EAX,EDX
-  MOVZX EDX,WORD PTR [ESI+30]  { ş MixSmpVolR ş }
+  MOVZX EDX,WORD PTR [ESI+30]  { * MixSmpVolR * }
   IMUL  EBX,EDX
 
-  { ş Adding current sample value to buffer position ş }
+  { * Adding current sample value to buffer position * }
   MOV   EDX,ISS_MixerData
-  MOV   EDI,[EDX+12]  { ş MixBufPtr ş }
+  MOV   EDI,[EDX+12]  { * MixBufPtr * }
   MOV   EDX,MixCounter
   SHL   EDX,3
   ADD   [EDI+EDX],EAX
   ADD   [EDI+EDX+4],EBX
 
-  { ş Calculating stepping rate step two ş }
-  { ş Getting the real step value from the fixedpoint rate ş }
-  { ş calculated previous ş }
-  MOV   EAX,[ESI+20]  { ş MixSmpInc ş }
-  ADD   EAX,[ESI+16]  { ş MixSmpLowStep ş }
+  { * Calculating stepping rate step two * }
+  { * Getting the real step value from the fixedpoint rate * }
+  { * calculated previous * }
+  MOV   EAX,[ESI+20]  { * MixSmpInc * }
+  ADD   EAX,[ESI+16]  { * MixSmpLowStep * }
   MOV   EBX,EAX
   SHR   EBX,16
-  ADD   EBX,[ESI+12]  { ş MixSmpHighStep ş }
+  ADD   EBX,[ESI+12]  { * MixSmpHighStep * }
   AND   EAX,$0000FFFF
-  MOV   [ESI+20],EAX  { ş MixSmpInc ş }
+  MOV   [ESI+20],EAX  { * MixSmpInc * }
 
-  { ş Increasing sample position ş }
+  { * Increasing sample position * }
   ADD   ECX,EBX
 
-  { ş Checking sample limits ş }
-  CMP   ECX,[ESI+32]  { ş MixSmpEnd ş }
+  { * Checking sample limits * }
+  CMP   ECX,[ESI+32]  { * MixSmpEnd * }
   JB    @SmpOk
-   MOV   EDI,[ESI]        { ş MixSmpPtr ş }
-   MOV   DL,[EDI+36]      { ş SType ş }
+   MOV   EDI,[ESI]        { * MixSmpPtr * }
+   MOV   DL,[EDI+36]      { * SType * }
    AND   DL,ISS_SmpPingPongLoop
    JZ    @SmpEnd
-    MOV   ECX,[EDI+26]    { ş SLoopStart ş }
+    MOV   ECX,[EDI+26]    { * SLoopStart * }
     JMP   @SmpOk
    @SmpEnd:
-    MOV   ECX,[EDI+22]    { ş SLength ş }
+    MOV   ECX,[EDI+22]    { * SLength * }
     MOV   MixCounter,$0FFFF
   @SmpOk:
 
@@ -389,70 +398,70 @@ Asm
   MOV   MixCounter,EAX
 
   MOV   EDI,ISS_MixerData
-  CMP   EAX,[EDI+4]   { ş MixBufSize ş }
+  CMP   EAX,[EDI+4]   { * MixBufSize * }
  JB    @LoopHead
 
- { ş Moving new sample pos into the record ş }
- MOV   [ESI+4],ECX       { ş MixSmpPos ş }
+ { * Moving new sample pos into the record * }
+ MOV   [ESI+4],ECX       { * MixSmpPos * }
 End;
 
-{ ş Mixes a 16bit sample into a stereo buffer ş }
+{ * Mixes a 16bit sample into a stereo buffer * }
 Function MixChannel16BitSampleSTEREO(MChIndexPtr : Pointer) : DWord; Assembler;
 Var MixCounter     : DWord;
 Asm
  MOV   ESI,MChIndexPtr
  MOV   MixCounter,0
 
- MOV   ECX,[ESI+4]   { ş MixSmpPos ş }
+ MOV   ECX,[ESI+4]   { * MixSmpPos * }
  SHL   ECX,1
  @LoopHead:
 
-  { ş Getting out samplevalue ş }
-  MOV   EDX,[ESI]     { ş MixSmpPtr ş }
-  MOV   EDI,[EDX+44]  { ş SDRAMOffs ş }
+  { * Getting out samplevalue * }
+  MOV   EDX,[ESI]     { * MixSmpPtr * }
+  MOV   EDI,[EDX+44]  { * SDRAMOffs * }
   MOVSX EAX,WORD PTR [EDI+ECX]
 
-  { ş Mix sample with volume ş }
+  { * Mix sample with volume * }
   MOV   EBX,EAX
-  MOVZX EDX,WORD PTR [ESI+28]  { ş MixSmpVolL ş }
+  MOVZX EDX,WORD PTR [ESI+28]  { * MixSmpVolL * }
   IMUL  EAX,EDX
-  MOVZX EDX,WORD PTR [ESI+30]  { ş MixSmpVolR ş }
+  MOVZX EDX,WORD PTR [ESI+30]  { * MixSmpVolR * }
   IMUL  EBX,EDX
 
-  { ş Adding current sample value to buffer position ş }
+  { * Adding current sample value to buffer position * }
   MOV   EDX,ISS_MixerData
-  MOV   EDI,[EDX+12]  { ş MixBufPtr ş }
+  MOV   EDI,[EDX+12]  { * MixBufPtr * }
   MOV   EDX,MixCounter
   SHL   EDX,3
   ADD   [EDI+EDX],EAX
   ADD   [EDI+EDX+4],EBX
 
-  { ş Calculating stepping rate step two ş }
-  { ş Getting the real step value from the fixedpoint rate ş }
-  { ş calculated previous ş }
-  MOV   EAX,[ESI+20]  { ş MixSmpInc ş }
-  ADD   EAX,[ESI+16]  { ş MixSmpLowStep ş }
+  { * Calculating stepping rate step two * }
+  { * Getting the real step value from the fixedpoint rate * }
+  { * calculated previous * }
+  MOV   EAX,[ESI+20]  { * MixSmpInc * }
+  ADD   EAX,[ESI+16]  { * MixSmpLowStep * }
   MOV   EBX,EAX
   SHR   EBX,16
-  ADD   EBX,[ESI+12]  { ş MixSmpHighStep ş }
+  ADD   EBX,[ESI+12]  { * MixSmpHighStep * }
   AND   EAX,$0000FFFF
-  MOV   [ESI+20],EAX  { ş MixSmpInc ş }
+  MOV   [ESI+20],EAX  { * MixSmpInc * }
   SHL   EBX,1
 
-  { ş Increasing sample position ş }
+  { * Increasing sample position * }
   ADD   ECX,EBX
 
-  { ş Checking sample limits ş }
-  CMP   ECX,[ESI+32]  { ş MixSmpEnd ş }
+  { * Checking sample limits * }
+  CMP   ECX,[ESI+32]  { * MixSmpEnd * }
   JB    @SmpOk
-   MOV   EDI,[ESI]        { ş MixSmpPtr ş }
-   MOV   DL,[EDI+36]      { ş SType ş }
+   MOV   EDI,[ESI]        { * MixSmpPtr * }
+   MOV   DL,[EDI+36]      { * SType * }
    AND   DL,ISS_SmpPingPongLoop
    JZ    @SmpEnd
-    MOV   ECX,[EDI+26]    { ş SLoopStart ş }
+    MOV   ECX,[EDI+26]    { * SLoopStart * }
     JMP   @SmpOk
    @SmpEnd:
-    MOV   ECX,[EDI+22]    { ş SLength ş }
+    MOV   ECX,[EDI+22]    { * SLength * }
     MOV   MixCounter,$0FFFF
   @SmpOk:
 
@@ -461,12 +470,12 @@ Asm
   MOV   MixCounter,EAX
 
   MOV   EDI,ISS_MixerData
-  CMP   EAX,[EDI+4]   { ş MixBufSize ş }
+  CMP   EAX,[EDI+4]   { * MixBufSize * }
  JB    @LoopHead
 
- { ş Moving new sample pos into the record ş }
+ { * Moving new sample pos into the record * }
  SHR   ECX,1
- MOV   [ESI+4],ECX       { ş MixSmpPos ş }
+ MOV   [ESI+4],ECX       { * MixSmpPos * }
 End;
 
 Procedure ISS_MixerUpdateBufferSTEREO;
@@ -476,15 +485,15 @@ Var ChannelCounter : DWord;
 Begin
  With ISS_MixerData^ Do Begin
 
-   { ş Clearing mixer buffer ş }
+   { * Clearing mixer buffer * }
    ISS_MixerClearBuffer(ISS_DevStereo);
 
-   { ş Main mixing loop ş }
-   { ş Going through all the active channels ş }
+   { * Main mixing loop * }
+   { * Going through all the active channels * }
    For ChannelCounter:=0 To ISS_ActiveSSChannels-1 Do Begin
      With ISS_VirtualChannels^[ChannelCounter] Do Begin
 
-       { ş If channel is active, then updating... ş }
+       { * If channel is active, then updating... * }
        If (VChControl And ISS_CCActive)>0 Then Begin
          With MixChannels[ChannelCounter] Do Begin
 
@@ -516,60 +525,60 @@ Begin
 End;
 
 
-{ ş >>> M O N O  M I X I N G  F U N C T I O N S <<< ş }
+{ * >>> M O N O  M I X I N G  F U N C T I O N S <<< * }
 
-{ ş Mixes a 8bit sample into a stereo buffer ş }
+{ * Mixes a 8bit sample into a stereo buffer * }
 Function MixChannel8BitSampleMONO(MChIndexPtr : Pointer) : DWord; Assembler;
 Var MixCounter     : DWord;
 Asm
  MOV   ESI,MChIndexPtr
  MOV   MixCounter,0
 
- MOV   ECX,[ESI+4]   { ş MixSmpPos ş }
+ MOV   ECX,[ESI+4]   { * MixSmpPos * }
  @LoopHead:
 
-  { ş Getting out samplevalue ş }
-  MOV   EDX,[ESI]     { ş MixSmpPtr ş }
-  MOV   EDI,[EDX+44]  { ş SDRAMOffs ş }
+  { * Getting out samplevalue * }
+  MOV   EDX,[ESI]     { * MixSmpPtr * }
+  MOV   EDI,[EDX+44]  { * SDRAMOffs * }
   MOVSX EAX,BYTE PTR [EDI+ECX]
   SAL   EAX,8
 
-  { ş Mix sample with volume ş }
-  MOVZX EBX,BYTE PTR [ESI+26]  { ş MixSmpVol ş }
+  { * Mix sample with volume * }
+  MOVZX EBX,BYTE PTR [ESI+26]  { * MixSmpVol * }
   IMUL  EAX,EBX
 
-  { ş Adding current sample value to buffer position ş }
+  { * Adding current sample value to buffer position * }
   MOV   EDX,ISS_MixerData
-  MOV   EDI,[EDX+12]  { ş MixBufPtr ş }
+  MOV   EDI,[EDX+12]  { * MixBufPtr * }
   MOV   EDX,MixCounter
   SHL   EDX,2
   ADD   [EDI+EDX],EAX
 
-  { ş Calculating stepping rate step two ş }
-  { ş Getting the real step value from the fixedpoint rate ş }
-  { ş calculated previous ş }
-  MOV   EAX,[ESI+20]  { ş MixSmpInc ş }
-  ADD   EAX,[ESI+16]  { ş MixSmpLowStep ş }
+  { * Calculating stepping rate step two * }
+  { * Getting the real step value from the fixedpoint rate * }
+  { * calculated previous * }
+  MOV   EAX,[ESI+20]  { * MixSmpInc * }
+  ADD   EAX,[ESI+16]  { * MixSmpLowStep * }
   MOV   EBX,EAX
   SHR   EBX,16
-  ADD   EBX,[ESI+12]  { ş MixSmpHighStep ş }
+  ADD   EBX,[ESI+12]  { * MixSmpHighStep * }
   AND   EAX,$0000FFFF
-  MOV   [ESI+20],EAX  { ş MixSmpInc ş }
+  MOV   [ESI+20],EAX  { * MixSmpInc * }
 
-  { ş Increasing sample position ş }
+  { * Increasing sample position * }
   ADD   ECX,EBX
 
-  { ş Checking sample limits ş }
-  CMP   ECX,[ESI+32]  { ş MixSmpEnd ş }
+  { * Checking sample limits * }
+  CMP   ECX,[ESI+32]  { * MixSmpEnd * }
   JB    @SmpOk
-   MOV   EDI,[ESI]        { ş MixSmpPtr ş }
-   MOV   DL,[EDI+36]      { ş SType ş }
+   MOV   EDI,[ESI]        { * MixSmpPtr * }
+   MOV   DL,[EDI+36]      { * SType * }
    AND   DL,ISS_SmpPingPongLoop
    JZ    @SmpEnd
-    MOV   ECX,[EDI+26]    { ş SLoopStart ş }
+    MOV   ECX,[EDI+26]    { * SLoopStart * }
     JMP   @SmpOk
    @SmpEnd:
-    MOV   ECX,[EDI+22]    { ş SLength ş }
+    MOV   ECX,[EDI+22]    { * SLength * }
     MOV   MixCounter,$0FFFF
   @SmpOk:
 
@@ -578,66 +587,66 @@ Asm
   MOV   MixCounter,EAX
 
   MOV   EDI,ISS_MixerData
-  CMP   EAX,[EDI+4]   { ş MixBufSize ş }
+  CMP   EAX,[EDI+4]   { * MixBufSize * }
  JB    @LoopHead
 
- { ş Moving new sample pos into the record ş }
- MOV   [ESI+4],ECX       { ş MixSmpPos ş }
+ { * Moving new sample pos into the record * }
+ MOV   [ESI+4],ECX       { * MixSmpPos * }
 End;
 
-{ ş Mixes a 16bit sample into a stereo buffer ş }
+{ * Mixes a 16bit sample into a stereo buffer * }
 Function MixChannel16BitSampleMONO(MChIndexPtr : Pointer) : DWord; Assembler;
 Var MixCounter     : DWord;
 Asm
  MOV   ESI,MChIndexPtr
  MOV   MixCounter,0
 
- MOV   ECX,[ESI+4]   { ş MixSmpPos ş }
+ MOV   ECX,[ESI+4]   { * MixSmpPos * }
  SHL   ECX,1
  @LoopHead:
 
-  { ş Getting out samplevalue ş }
-  MOV   EDX,[ESI]     { ş MixSmpPtr ş }
-  MOV   EDI,[EDX+44]  { ş SDRAMOffs ş }
+  { * Getting out samplevalue * }
+  MOV   EDX,[ESI]     { * MixSmpPtr * }
+  MOV   EDI,[EDX+44]  { * SDRAMOffs * }
   MOVSX EAX,WORD PTR [EDI+ECX]
 
-  { ş Mix sample with volume ş }
-  MOVZX EBX,WORD PTR [ESI+26]  { ş MixSmpVol ş }
+  { * Mix sample with volume * }
+  MOVZX EBX,WORD PTR [ESI+26]  { * MixSmpVol * }
   IMUL  EAX,EBX
 
-  { ş Adding current sample value to buffer position ş }
+  { * Adding current sample value to buffer position * }
   MOV   EDX,ISS_MixerData
-  MOV   EDI,[EDX+12]  { ş MixBufPtr ş }
+  MOV   EDI,[EDX+12]  { * MixBufPtr * }
   MOV   EDX,MixCounter
   SHL   EDX,2
   ADD   [EDI+EDX],EAX
 
-  { ş Calculating stepping rate step two ş }
-  { ş Getting the real step value from the fixedpoint rate ş }
-  { ş calculated previous ş }
-  MOV   EAX,[ESI+20]  { ş MixSmpInc ş }
-  ADD   EAX,[ESI+16]  { ş MixSmpLowStep ş }
+  { * Calculating stepping rate step two * }
+  { * Getting the real step value from the fixedpoint rate * }
+  { * calculated previous * }
+  MOV   EAX,[ESI+20]  { * MixSmpInc * }
+  ADD   EAX,[ESI+16]  { * MixSmpLowStep * }
   MOV   EBX,EAX
   SHR   EBX,16
-  ADD   EBX,[ESI+12]  { ş MixSmpHighStep ş }
+  ADD   EBX,[ESI+12]  { * MixSmpHighStep * }
   AND   EAX,$0000FFFF
-  MOV   [ESI+20],EAX  { ş MixSmpInc ş }
+  MOV   [ESI+20],EAX  { * MixSmpInc * }
   SHL   EBX,1
 
-  { ş Increasing sample position ş }
+  { * Increasing sample position * }
   ADD   ECX,EBX
 
-  { ş Checking sample limits ş }
-  CMP   ECX,[ESI+32]  { ş MixSmpEnd ş }
+  { * Checking sample limits * }
+  CMP   ECX,[ESI+32]  { * MixSmpEnd * }
   JB    @SmpOk
-   MOV   EDI,[ESI]        { ş MixSmpPtr ş }
-   MOV   DL,[EDI+36]      { ş SType ş }
+   MOV   EDI,[ESI]        { * MixSmpPtr * }
+   MOV   DL,[EDI+36]      { * SType * }
    AND   DL,ISS_SmpPingPongLoop
    JZ    @SmpEnd
-    MOV   ECX,[EDI+26]    { ş SLoopStart ş }
+    MOV   ECX,[EDI+26]    { * SLoopStart * }
     JMP   @SmpOk
    @SmpEnd:
-    MOV   ECX,[EDI+22]    { ş SLength ş }
+    MOV   ECX,[EDI+22]    { * SLength * }
     MOV   MixCounter,$0FFFF
   @SmpOk:
 
@@ -646,12 +655,12 @@ Asm
   MOV   MixCounter,EAX
 
   MOV   EDI,ISS_MixerData
-  CMP   EAX,[EDI+4]   { ş MixBufSize ş }
+  CMP   EAX,[EDI+4]   { * MixBufSize * }
  JB    @LoopHead
 
- { ş Moving new sample pos into the record ş }
+ { * Moving new sample pos into the record * }
  SHR   ECX,1
- MOV   [ESI+4],ECX       { ş MixSmpPos ş }
+ MOV   [ESI+4],ECX       { * MixSmpPos * }
 End;
 
 Procedure ISS_MixerUpdateBufferMONO;
@@ -661,12 +670,12 @@ Var ChannelCounter : DWord;
 Begin
  With ISS_MixerData^ Do Begin
 
-   { ş Main mixing loop ş }
-   { ş Going through all the active channels ş }
+   { * Main mixing loop * }
+   { * Going through all the active channels * }
    For ChannelCounter:=0 To ISS_ActiveSSChannels-1 Do Begin
      With ISS_VirtualChannels^[ChannelCounter] Do Begin
 
-       { ş If channel is active, then updating... ş }
+       { * If channel is active, then updating... * }
        If (VChControl And ISS_CCActive)>0 Then Begin
          With MixChannels[ChannelCounter] Do Begin
 
@@ -705,26 +714,26 @@ Begin
 
  With ISS_MixerData^ Do Begin
 
- { ş Start Voices Update ş }
+ { * Start Voices Update * }
  For ChannelCounter:=0 To ISS_ActiveSSChannels-1 Do Begin
    With ISS_VirtualChannels^[ChannelCounter] Do Begin
      With MixChannels[ChannelCounter] Do Begin
 
-       { ş Anything to do on this channel? ş }
+       { * Anything to do on this channel? * }
        If (VChControl>1) And ((VChControl And ISS_CCActive)>0) Then Begin
 
-         { ş Stop Voice? ş }
+         { * Stop Voice? * }
          If (VChControl And ISS_CCStop)>0 Then Begin
            Dec(VChControl,ISS_CCStop);
            Dec(VChControl,ISS_CCActive);
           End;
 
-         { ş Start a Sample ? ş }
+         { * Start a Sample ? * }
          If (VChControl And ISS_CCSample)>0 Then Begin
            Dec(VChControl,ISS_CCSample);
            MixSmpPtr:=VChSmpAddr;
            With MixSmpPtr^ Do Begin
-             { ş Offset limit checking ş }
+             { * Offset limit checking * }
              If (VChSmpOffs>=SLength) And
                 ((SType And ISS_SmpPingPongLoop)>0) Then Begin
                 VChSmpOffs:=SLoopStart;
@@ -735,8 +744,8 @@ Begin
              VChControl:=VChControl Or ISS_CCActive;
           End;
 
-         { ş Change Channel Volume ? ş }
-         { ş Change Channel Panning ? ş }
+         { * Change Channel Volume ? * }
+         { * Change Channel Panning ? * }
          If ((VChControl And ISS_CCVolume)>0) Or
             ((VChControl And ISS_CCPanning)>0) Then Begin
 
@@ -760,13 +769,13 @@ Begin
            MixSmpVolR:=(MixSmpVolR*MixSmpVol) Div 64;
           End;
 
-         { ş Change Channel Frequency ? ş }
+         { * Change Channel Frequency ? * }
          If (VChControl And ISS_CCPeriod)>0 Then Begin
            Dec(VChControl,ISS_CCPeriod);
            MixSmpRate:=VChFreq;
-           { ş Calculating stepping rates ş }
+           { * Calculating stepping rates * }
            MixSmpHighStep:=(MixSmpRate Div MixRate);
-           { ş This is divided into 2 lines, because of an FPC bug (?) :( ş }
+           { * This is divided into 2 lines, because of an FPC bug (?) :( * }
            MixSmpLowStep:=(MixSmpRate Mod MixRate) Shl 16;
            MixSmpLowStep:=MixSmpLowStep Div MixRate;
           End;
@@ -777,14 +786,14 @@ Begin
     End;
   End;
 
-  { ş Clearing mixer buffer ş }
+  { * Clearing mixer buffer * }
   ISS_MixerClearBuffer(MixBufType);
 
   If (MixBufType And ISS_DevStereo)>0 Then ISS_MixerUpdateBufferSTEREO
                                       Else ISS_MixerUpdateBufferMONO;
 
-  { ş Do final buffer clipping, and convert it into the format ş }
-  { ş requested by the output device ş }
+  { * Do final buffer clipping, and convert it into the format * }
+  { * requested by the output device * }
   ISS_MixerMakeClip(MixBufType);
 
  End;
@@ -794,5 +803,3 @@ End;
 Begin
  ISS_MixerOK:=False;
 End.
-
-{ ş ISS_MIX.PAS - (C) 2000-2001 Charlie/Inquisition ş }

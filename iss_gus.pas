@@ -1,63 +1,73 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ þ ISS_GUS .PAS - Device Driver for GF1 based Gravis Ultrasound cards     ³}
-{³                  Work started     : 1998.10.16.                          ³}
-{³                  Last modification: 2001.03.01.                          ³}
-{³             OS - GO32V2 only.                                            ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_GUS .PAS - Device Driver for GF1 based Gravis Ultrasound cards    }
+{             OS - GO32V2 only.                                           }
+
 {$INCLUDE ISS_SET.INC}
 {$ASMMODE INTEL}
 {$MODE FPC}
 
-{$HINTS OFF} { þ Enable this if you modify the source! þ }
-{$NOTES OFF} { þ Enable this if you modify the source! þ }
+{$HINTS OFF} { * Enable this if you modify the source! * }
+{$NOTES OFF} { * Enable this if you modify the source! * }
 
 Unit ISS_GUS;
 
 Interface
 
-Uses ISS_Var, { þ Uses the system variables and types þ }
-     ISS_Tim, { þ Uses the timer services þ }
-     GO32,    { þ Uses GO32 unit, because DOS-only driver þ }
-     DOS;     { þ Uses DOS unit, for environment variable access þ }
+Uses ISS_Var, { * Uses the system variables and types * }
+     ISS_Tim, { * Uses the timer services * }
+     GO32,    { * Uses GO32 unit, because DOS-only driver * }
+     DOS;     { * Uses DOS unit, for environment variable access * }
 
 Const ISS_GUSVersionStr = '0.6.6';
       ISS_GUSName     = 'Gravis Ultrasound';
       ISS_GUSLongDesc = 'Gravis Ultrasound GF1 Based Wavetable Device Driver';
 
-Var ISS_GUSDevice : ISS_TSoundDevice; { þ GUS Device Structure þ }
-    ISS_GUSDriver : ISS_TSoundDriver; { þ GUS Device Driver þ }
+Var ISS_GUSDevice : ISS_TSoundDevice; { * GUS Device Structure * }
+    ISS_GUSDriver : ISS_TSoundDriver; { * GUS Device Driver * }
 
-Procedure ISS_GUSDevInit; { þ Inits the GUS driver structures þ }
+Procedure ISS_GUSDevInit; { * Inits the GUS driver structures * }
 
 Implementation
 
-{ þ UltraSound Ports þ }
-Const StatusPort      = $6; { þ $2x6 þ }
-      TimerCtrlPort   = $8; { þ $2x8 þ }
-      TimerDataPort   = $9; { þ $2x9 þ }
+{ * UltraSound Ports * }
+Const StatusPort      = $6; { * $2x6 * }
+      TimerCtrlPort   = $8; { * $2x8 * }
+      TimerDataPort   = $9; { * $2x9 * }
 
       MidiCtrlPort    = $100;
       MidiDataPort    = $101;
 
       ActiveVoicePort = $102;
-      CommandPort     = $103; { þ $3x3 (Reg Select) þ }
-      DataLowPort     = $104; { þ $3x4 þ }
-      DataHighPort    = $105; { þ $3x5 þ }
-      DRAMIOPort      = $107; { þ $3x7 þ }
+      CommandPort     = $103; { * $3x3 (Reg Select) * }
+      DataLowPort     = $104; { * $3x4 * }
+      DataHighPort    = $105; { * $3x5 * }
+      DRAMIOPort      = $107; { * $3x7 * }
 
       JoystickTimer   = $201;
 
-      BoardVersion    = $506; { þ Read þ }
-      MixerControl    = $506; { þ Write (ICS Mixer Control) þ }
+      BoardVersion    = $506; { * Read * }
+      MixerControl    = $506; { * Write (ICS Mixer Control) * }
 
-      { þ UltraSound Commands ( or/and register ) þ }
+      { * UltraSound Commands ( or/and register ) * }
 
       WriteVoiceMode  = $00;
-      SetVoiceFreq    = $01; { þ Value=Freq/Divisor þ }
+      SetVoiceFreq    = $01; { * Value=Freq/Divisor * }
       LoopStartLo     = $02;
       LoopStartHi     = $03;
       SampleEndLo     = $04;
@@ -82,22 +92,22 @@ Const StatusPort      = $6; { þ $2x6 þ }
       SampleCtrl      = $49;
       Initialize      = $4C;
       Read            = $80;
-      ReadVolume      = Read+SetVolume;     { þ $89 þ }
-      VoicePosLo      = Read+SampleStartLo; { þ $8A þ }
-      VoicePosHi      = Read+SampleStartHi; { þ $8B þ }
-      ReadVolCtrl     = Read+VolumeCtrl;    { þ $8D þ }
+      ReadVolume      = Read+SetVolume;     { * $89 * }
+      VoicePosLo      = Read+SampleStartLo; { * $8A * }
+      VoicePosHi      = Read+SampleStartHi; { * $8B * }
+      ReadVolCtrl     = Read+VolumeCtrl;    { * $8D * }
       IRQStatus       = $8F;
 
-      GUSFreq : Array[0..31] Of Word =( { þ Ultrasound Frequency Table þ }
+      GUSFreq : Array[0..31] Of Word =( { * Ultrasound Frequency Table * }
                       44100,44100,44100,44100,44100,44100,44100,
                       44100,44100,44100,44100,44100,44100,44100,
                       41160,38587,36317,34300,32494,30870,29400,
                       28063,26843,25725,24696,23746,22866,22050,
                       21289,20580,19916,19293);
 
-      GUS_StopLineIn = 0; { þ 0 = Line In Enabled, 1 = Line In Disabled þ }
+      GUS_StopLineIn = 0; { * 0 = Line In Enabled, 1 = Line In Disabled * }
 
-Type ISS_TGUSHWSetup = Record { þ Used for GUS detection þ }
+Type ISS_TGUSHWSetup = Record { * Used for GUS detection * }
        Base_Port  : Word;
        DRAM_DMA   : Word;
        ADC_DMA    : Word;
@@ -107,15 +117,15 @@ Type ISS_TGUSHWSetup = Record { þ Used for GUS detection þ }
        GUS_Ver    : Byte;
       End;
 
-Var ISS_GUSHWSetup    : ISS_TGUSHWSetup; { þ GUS Hardware Parameters þ }
+Var ISS_GUSHWSetup    : ISS_TGUSHWSetup; { * GUS Hardware Parameters * }
     ISS_GUSDRAMOffset : DWord;
 
-    ISS_GUSActiveChannels : Word;  { þ Number of active hardware channels þ }
-    ISS_GUSDivisor        : DWord; { þ Frequency divisor (See GUS_Freq) þ }
+    ISS_GUSActiveChannels : Word;  { * Number of active hardware channels * }
+    ISS_GUSDivisor        : DWord; { * Frequency divisor (See GUS_Freq) * }
 
-    ISS_GUSVol : Array[0..512] Of Word; { þ GUS Volume table þ }
+    ISS_GUSVol : Array[0..512] Of Word; { * GUS Volume table * }
 
-{ þ >>> D E B U G  F U N C T I O N S <<< þ }
+{ * >>> D E B U G  F U N C T I O N S <<< * }
 
 {$IFDEF _ISS_GUS_DEBUGMODE_}
  Function WriteHex(Num : Word) : String[4];
@@ -132,18 +142,18 @@ Var ISS_GUSHWSetup    : ISS_TGUSHWSetup; { þ GUS Hardware Parameters þ }
  End;
 {$ENDIF}
 
-{ þ >>> I N T E R N A L  F U N C T I O N S <<< þ }
+{ * >>> I N T E R N A L  F U N C T I O N S <<< * }
 
-{ þ  !UGLY  SHIT  FROM  GUS  SDK!  þ }
+{ *  !UGLY  SHIT  FROM  GUS  SDK!  * }
 Function ParseToHex(Var FromStr : String; Var ToWord : Word) : Boolean;
-{ þ Take the first number found.  Disregard ',' and ' ' chars þ }
+{ * Take the first number found.  Disregard ',' and ' ' chars * }
 Begin
  ParseToHex := False;
  While ((FromStr[1]=' ') Or (FromStr[1]=',') Or
         (FromStr[1]='$')) And (Length(FromStr)<>0) Do Delete(FromStr,1,1);
  If (Ord(FromStr[1])>47) And (Ord(FromStr[1])<58) And
     (FromStr <> '') Then Begin
-   ParseToHex:=True;  { þ a number was found þ }
+   ParseToHex:=True;  { * a number was found * }
    ToWord:=0;
    While (Ord(FromStr[1])>47) And (Ord(FromStr[1])<58) And
          (FromStr <> '') Do Begin
@@ -152,11 +162,11 @@ Begin
     End;
   End;
 End;
-{ þ  !UGLY  SHIT  FROM  GUS  SDK!  þ }
+{ *  !UGLY  SHIT  FROM  GUS  SDK!  * }
 
-{ þ  !UGLY  SHIT  FROM  GUS  SDK!  þ }
+{ *  !UGLY  SHIT  FROM  GUS  SDK!  * }
 Function ParseToNum(Var FromStr : String; Var ToWord : Word) : Boolean;
-{ þ Take the first number found.  Disregard ',' And ' ' chars þ }
+{ * Take the first number found.  Disregard ',' And ' ' chars * }
 Var StripStr : String[10];
     Code     : Integer;
 Begin
@@ -164,7 +174,7 @@ Begin
  While ((FromStr[1]=' ') Or (FromStr[1]=',')) And
         (Length(FromStr)<>0) Do Delete(FromStr,1,1);
  If (Ord(FromStr[1])>47) And (Ord(FromStr[1])<58) And (FromStr<>'') Then Begin
-   ParseToNum:=True;  { þ a number was found þ }
+   ParseToNum:=True;  { * a number was found * }
    StripStr:='';
    While (Ord(FromStr[1])>47) And (Ord(FromStr[1])<58) And
          (FromStr<>'') Do Begin
@@ -174,9 +184,9 @@ Begin
    Val(StripStr,ToWord,Code);
   End;
 End;
-{ þ  !UGLY  SHIT  FROM  GUS  SDK!  þ }
+{ *  !UGLY  SHIT  FROM  GUS  SDK!  * }
 
-{ þ  !UGLY  SHIT  FROM  GUS  SDK!  þ }
+{ *  !UGLY  SHIT  FROM  GUS  SDK!  * }
 Function UltraGetConfig(Var Config : ISS_TGUSHWSetup) : Boolean;
 Var EnvStr : String;
 Begin
@@ -192,7 +202,7 @@ Begin
     End;
   End;
 End;
-{ þ  !UGLY  SHIT  FROM  GUS  SDK!  þ }
+{ *  !UGLY  SHIT  FROM  GUS  SDK!  * }
 
 Procedure GUSGenerateVolTable;
 Var Counter  : DWord;
@@ -230,10 +240,10 @@ Asm
  MOV DX,CommandPort
  ADD DX,ISS_GUSDevice.DevBaseport
  MOV AL,Register
- OUT DX,AL { þ Selects the register to write þ }
- ADD DX,2  { þ Data High port þ }
+ OUT DX,AL { * Selects the register to write * }
+ ADD DX,2  { * Data High port * }
  MOV AL,Value
- OUT DX,AL { þ Writes value out to the GUS þ }
+ OUT DX,AL { * Writes value out to the GUS * }
 End;
 
 Procedure GUSWriteDelay(Register, Value : Byte); Assembler;
@@ -241,12 +251,12 @@ Asm
  MOV  DX,CommandPort
  ADD  DX,ISS_GUSDevice.DevBaseport
  MOV  AL,Register
- OUT  DX,AL { þ Selects the register to write þ }
- ADD  DX,2  { þ Data High port þ }
+ OUT  DX,AL { * Selects the register to write * }
+ ADD  DX,2  { * Data High port * }
  MOV  AL,Value
- OUT  DX,AL { þ Writes value out to the GUS þ }
+ OUT  DX,AL { * Writes value out to the GUS * }
  CALL GUSDelay
- OUT  DX,AL { þ Writes value out to the GUS þ }
+ OUT  DX,AL { * Writes value out to the GUS * }
 End;
 
 Procedure GUSWriteW(Register : Byte; Value : Word); Assembler;
@@ -254,10 +264,10 @@ Asm
  MOV DX,CommandPort
  ADD DX,ISS_GUSDevice.DevBaseport
  MOV AL,Register
- OUT DX,AL { þ Selects the register to write þ }
- INC DX    { þ Data Low port þ }
+ OUT DX,AL { * Selects the register to write * }
+ INC DX    { * Data Low port * }
  MOV AX,Value
- OUT DX,AX { þ Writes value out to the GUS þ }
+ OUT DX,AX { * Writes value out to the GUS * }
 End;
 
 Function GUSRead(Register : Byte) : Byte; Assembler;
@@ -265,9 +275,9 @@ Asm
  MOV DX,CommandPort
  ADD DX,ISS_GUSDevice.DevBaseport
  MOV AL,Register
- OUT DX,AL { þ Selects the register to read þ }
- ADD DX,2  { þ Data High Port þ }
- IN  AL,DX { þ Reads value out from the GUS þ }
+ OUT DX,AL { * Selects the register to read * }
+ ADD DX,2  { * Data High Port * }
+ IN  AL,DX { * Reads value out from the GUS * }
 End;
 
 Function GUSReadW(Register : Byte) : Word; Assembler;
@@ -275,12 +285,12 @@ Asm
  MOV DX,CommandPort
  ADD DX,ISS_GUSDevice.DevBaseport
  MOV AL,Register
- OUT DX,AL { þ Selects the register to read þ }
- INC DX    { þ Data Low Port þ }
- IN  AX,DX { þ Reads value out from the GUS þ }
+ OUT DX,AL { * Selects the register to read * }
+ INC DX    { * Data Low Port * }
+ IN  AX,DX { * Reads value out from the GUS * }
 End;
 
-{ þ Set the current active voice þ }
+{ * Set the current active voice * }
 Procedure GUSSetVoice(Voice : Byte); Assembler;
 Asm
  MOV AL,Voice
@@ -289,43 +299,43 @@ Asm
  OUT DX,AL
 End;
 
-{ þ Reads a byte from GUS DRAM þ }
+{ * Reads a byte from GUS DRAM * }
 Function GUSPeek(Address : DWord) : Byte; Assembler;
 Asm
  MOV DX,CommandPort
  ADD DX,ISS_GUSDevice.DevBaseport
  MOV AL,DRAMAddrLo
- OUT DX,AL { þ Select Register (3x3) þ }
- INC DX    { þ DataLowPort     (3x4) þ }
+ OUT DX,AL { * Select Register (3x3) * }
+ INC DX    { * DataLowPort     (3x4) * }
  MOV EAX,Address
  OUT DX,AX
- DEC DX    { þ CommandPort     (3x3) þ }
+ DEC DX    { * CommandPort     (3x3) * }
  MOV AL,DRAMAddrHi
  OUT DX,AL
- ADD DX,2  { þ DataHighPort    (3x5) þ }
+ ADD DX,2  { * DataHighPort    (3x5) * }
  SHR EAX,16
  OUT DX,AL
- ADD DX,2  { þ DRAMIOPort      (3x7) þ }
+ ADD DX,2  { * DRAMIOPort      (3x7) * }
  IN  AL,DX
 End;
 
-{ þ Writes a byte to GUS DRAM þ }
+{ * Writes a byte to GUS DRAM * }
 Procedure GUSPoke(Address : DWord; Value : Byte); Assembler;
 Asm
  MOV DX,CommandPort
  ADD DX,ISS_GUSDevice.DevBaseport
  MOV AL,DRAMAddrLo
- OUT DX,AL { þ Select Register (3x3) þ }
- INC DX    { þ DataLowPort     (3x4) þ }
+ OUT DX,AL { * Select Register (3x3) * }
+ INC DX    { * DataLowPort     (3x4) * }
  MOV EAX,Address
  OUT DX,AX
- DEC DX    { þ CommandPort     (3x3) þ }
+ DEC DX    { * CommandPort     (3x3) * }
  MOV AL,DRAMAddrHi
  OUT DX,AL
- ADD DX,2  { þ DataHighPort    (3x5) þ }
+ ADD DX,2  { * DataHighPort    (3x5) * }
  SHR EAX,16
  OUT DX,AL
- ADD DX,2  { þ DRAMIOPort      (3x7) þ }
+ ADD DX,2  { * DRAMIOPort      (3x7) * }
  MOV AL,Value
  OUT DX,AL
 End;
@@ -339,14 +349,14 @@ Begin
    Asm
     MOV DX,CommandPort
     ADD DX,ISS_GUSDevice.DevBaseport
-    MOV AL,Initialize { þ Take the GUS out of a reset state þ }
+    MOV AL,Initialize { * Take the GUS out of a reset state * }
     OUT DX,AL
-    ADD DX,2          { þ DataHighPort þ }
+    ADD DX,2          { * DataHighPort * }
     MOV AL,00000111B
     OUT DX,AL
    End;
 
-   { þ Detecting amount of GUS memory þ }
+   { * Detecting amount of GUS memory * }
    DevDRAMSize:=0;
    GUSPoke(DevDRAMSize,$AA);
    While (GUSPeek(DevDRAMSize)=$AA) And (DevDRAMSize<1024*1024) Do Begin
@@ -354,10 +364,10 @@ Begin
      GUSPoke(DevDRAMSize,$AA);
     End;
 
-   { þ If no RAM available then GUS cannot be used, so exit. þ }
+   { * If no RAM available then GUS cannot be used, so exit. * }
    If DevDRAMSize=0 Then Exit;
 
-   { þ Querying hardware revision ID. þ }
+   { * Querying hardware revision ID. * }
    Asm
     MOV DX,BoardVersion
     ADD DX,ISS_GUSDevice.DevBaseport
@@ -375,10 +385,10 @@ Begin
  Asm
   CLI
  End;
- GUSWrite(Initialize,0); { þ GF1 Master Reset þ }
+ GUSWrite(Initialize,0); { * GF1 Master Reset * }
  GUSDelay;
  GUSDelay;
- GUSWrite(Initialize,1); { þ GF1 Enable þ }
+ GUSWrite(Initialize,1); { * GF1 Enable * }
  GUSDelay;
  GUSDelay;
  GUSWrite(VoicesActive,31 Or $0C0);
@@ -387,12 +397,12 @@ Begin
     MOV DX,ActiveVoicePort
     ADD DX,ISS_GUSDevice.DevBaseport
     MOV AL,Counter
-    OUT DX,AL { þ Now we select channel þ }
+    OUT DX,AL { * Now we select channel * }
    End;
-   GUSWriteDelay(WriteVoiceMode,3); { þ Voice Off þ }
-   GUSWriteDelay(VolumeCtrl,3);     { þ Volume Ramp Off þ }
-   GUSWrite(VolRampRate,%00111111); { þ Max RampRate þ }
-   GUSWriteW(SetVolume,$5000); { þ Volume <- 0 þ }
+   GUSWriteDelay(WriteVoiceMode,3); { * Voice Off * }
+   GUSWriteDelay(VolumeCtrl,3);     { * Volume Ramp Off * }
+   GUSWrite(VolRampRate,%00111111); { * Max RampRate * }
+   GUSWriteW(SetVolume,$5000); { * Volume <- 0 * }
    GUSDelay;
    GUSDelay;
   End;
@@ -415,36 +425,36 @@ Asm
  MOV DX,CommandPort
  ADD DX,ISS_GUSDevice.DevBaseport
  MOV AL,DRAMAddrHi
- OUT DX,AL { þ 3x3 Select Register þ }
+ OUT DX,AL { * 3x3 Select Register * }
  ADD DX,2
  MOV AX,BX
- OUT DX,AL { þ 3x5 Data High þ }
+ OUT DX,AL { * 3x5 Data High * }
  SUB DX,2
  MOV AL,DRAMAddrLo
- OUT DX,AL { þ 3x3 Select Register þ }
+ OUT DX,AL { * 3x3 Select Register * }
  INC DX
  MOV ECX,Count
- MOV ESI,SData { þ Data Source þ }
+ MOV ESI,SData { * Data Source * }
  @CycleHead:
   MOV AX,DI
-  OUT DX,AX { þ 3x4 Data Low þ }
+  OUT DX,AX { * 3x4 Data Low * }
   ADD DX,3
   MOV AL,[ESI]
   INC ESI
-  OUT DX,AL { þ 3x7 DRAM I/O þ }
+  OUT DX,AL { * 3x7 DRAM I/O * }
   SUB DX,3
   ADD DI,1
   JNC @DoLoop
    DEC DX
    INC BX
    MOV AL,DRAMAddrHi
-   OUT DX,AL { þ 3x3 Select Register þ }
+   OUT DX,AL { * 3x3 Select Register * }
    ADD DX,2
    MOV AX,BX
-   OUT DX,AL { þ 3x5 Data High þ }
+   OUT DX,AL { * 3x5 Data High * }
    SUB DX,2
    MOV AL,DRAMAddrLo
-   OUT DX,AL { þ 3x3 Select Register þ }
+   OUT DX,AL { * 3x3 Select Register * }
    INC DX
   @DoLoop:
   DEC ECX
@@ -452,18 +462,18 @@ Asm
  STI
 End;
 
-{ þ Start a volume ramp on the current channel from the actual volume to þ }
-{ þ the specified volume þ }
+{ * Start a volume ramp on the current channel from the actual volume to * }
+{ * the specified volume * }
 Procedure GUS_FadeVol(Vol2 : Word);
 Var Vol1    : Word;
     Buffer  : Word;
     Swapped : Byte;
 Begin
 
- { þ Read current volume from the GUS þ }
+ { * Read current volume from the GUS * }
  Vol1:=GUSReadW(ReadVolume) Shr 4;
 
- { þ Setup ramp direction þ }
+ { * Setup ramp direction * }
  If Vol1>Vol2 Then Begin
    Buffer:=Vol1; Vol1:=Vol2; Vol2:=Buffer; Swapped:=$40;
   End Else Begin
@@ -472,23 +482,23 @@ Begin
 
  Dec(Vol2,Vol1); If Vol2=0 Then Exit;
 
- { þ Just simply set the volume if ramp would be too small þ }
+ { * Just simply set the volume if ramp would be too small * }
  If Vol2<64 Then Begin
    If Swapped=0 Then Inc(Vol1,Vol2);
    GUSWriteW(SetVolume,Vol1 Shl 4);
    Exit;
   End;
 
- { þ Limit checks þ }
+ { * Limit checks * }
  Inc(Vol2,Vol1);
 
  if (Vol1<64)   then Vol1:=64;
  if (Vol2>4032) then Vol2:=4032;
 
- { þ Setup new ramp þ }
+ { * Setup new ramp * }
  GUSWrite(VolRampStart,Vol1 Shr 4);
  GUSWrite(VolRampEnd,Vol2 Shr 4);
- { þ Start new ramp þ }
+ { * Start new ramp * }
  GUSWriteDelay(VolumeCtrl,Swapped);
 End;
 
@@ -505,7 +515,7 @@ Begin
  GUSWriteW(Register+1,Address Shl 9);
 End;
 
-{ þ >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< þ }
+{ * >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< * }
 
 Function ISS_GUSDetect : Boolean;
 Begin
@@ -516,7 +526,7 @@ Function ISS_GUSInit : Boolean;
 Begin
  ISS_GUSInit:=False;
  If Not GUSHardDetect Then Begin
-   { þ ERROR CODE! þ }
+   { * ERROR CODE! * }
    Exit;
   End;
  ISS_GUSDRAMOffset:=0;
@@ -539,33 +549,33 @@ Var SmpConvBuf  : Pointer;
 Begin
  ISS_GUSLoadSample:=False;
 
- { þ Uploading sample þ }
+ { * Uploading sample * }
  With SStruc^ Do Begin
 
-   { þ If sample is 16bit, divide size with 2 þ }
+   { * If sample is 16bit, divide size with 2 * }
    If (SType And ISS_Smp16BitData)>0 Then Begin
      RealSLength:=SLength Div 2;
     End Else Begin
      RealSLength:=SLength;
     End;
 
-   { þ Is the sample fits into GUSRAM? þ }
+   { * Is the sample fits into GUSRAM? * }
    If RealSLength+ISS_GUSDRAMOffset+1>ISS_GUSDevice.DevDRAMSize Then Begin
-     { þ ERROR CODE! þ }
+     { * ERROR CODE! * }
      Exit;
     End;
 
    GetMem(SmpConvBuf,RealSLength);
 
-   { þ GUS has some limitations when using 16bit samples, noteably a 16bit þ }
-   { þ sample can't cross a 256k boundary. To simplify the driver, and þ }
-   { þ because the lack of time, i decided to convert the samples to 8bit þ }
-   { þ before loading into the GUS RAM. Later, a GUS heap manager should þ }
-   { þ be implemented to handle 16bit samples correctly, but the mixer þ }
-   { þ and other tasks has higher priority now. þ }
-   { þ UPDATE: instead of a heap handler, an intelligent sample manager þ }
-   { þ         should be implemented, to allow playing XM's bigger than þ }
-   { þ         the available wavetable memory on wavetable soundcards.  þ }
+   { * GUS has some limitations when using 16bit samples, noteably a 16bit * }
+   { * sample can't cross a 256k boundary. To simplify the driver, and * }
+   { * because the lack of time, i decided to convert the samples to 8bit * }
+   { * before loading into the GUS RAM. Later, a GUS heap manager should * }
+   { * be implemented to handle 16bit samples correctly, but the mixer * }
+   { * and other tasks has higher priority now. * }
+   { * UPDATE: instead of a heap handler, an intelligent sample manager * }
+   { *         should be implemented, to allow playing XM's bigger than * }
+   { *         the available wavetable memory on wavetable soundcards.  * }
    If (SType And ISS_Smp16BitData)>0 Then Begin
      For Counter:=0 To RealSLength-1 Do Begin
        PShortInt(SmpConvBuf)[Counter]:=PInteger(SData)[Counter] Shr 8;
@@ -574,7 +584,7 @@ Begin
      Move(SData^,SmpConvBuf^,RealSLength);
     End;
 
-   { þ Modifying sample beginning to avoid some clickings þ }
+   { * Modifying sample beginning to avoid some clickings * }
    PShortInt(SmpConvBuf)[0]:=0;
 
    GUS_RAM2DRAM(SmpConvBuf,ISS_GUSDRAMOffset,RealSLength);
@@ -595,10 +605,10 @@ End;
 
 Function ISS_GUSSetVolume(Volume : DWord) : Boolean;
 Begin
- { þ Dummy. Old GUSes have no mixer. :( Later, the support for the þ }
- { þ newer-series GF1's ICS mixer should be added. I'm looking for þ }
- { þ some programing docs about the ICS mixer! If you have the docs, þ }
- { þ please contact me, so i can add support for it. þ }
+ { * Dummy. Old GUSes have no mixer. :( Later, the support for the * }
+ { * newer-series GF1's ICS mixer should be added. I'm looking for * }
+ { * some programing docs about the ICS mixer! If you have the docs, * }
+ { * please contact me, so i can add support for it. * }
  ISS_GUSSetVolume:=True;
 End;
 
@@ -610,14 +620,14 @@ Begin
                             Else ISS_GUSActiveChannels:=ISS_ActiveSSChannels;
  If ISS_GUSActiveChannels<14 Then ISS_GUSActiveChannels:=14;
 
- { þ Boostin' up "The Queen Of The SoundCards" :) þ }
+ { * Boostin' up "The Queen Of The SoundCards" :) * }
  GUSWrite(VoicesActive,Byte((ISS_GUSActiveChannels-1) Or $C0));
- { þ Phew, this was easy, wasn't it? Compare this with a Sound Blaster þ }
- { þ initialization code... :) þ }
+ { * Phew, this was easy, wasn't it? Compare this with a Sound Blaster * }
+ { * initialization code... :) * }
 
  ISS_GUSDivisor:=GUSFreq[ISS_GUSActiveChannels-1];
 
- { þ Now initializing the timer call þ }
+ { * Now initializing the timer call * }
  If ISS_StartTimer(PeriodicCall,(ISS_TimerSpeed Div 140)) Then Begin
    ISS_GUSStartOutput:=True;
    ISS_TimerDiff:=ISS_TimerSpeed Div 140;
@@ -633,18 +643,18 @@ End;
 
 Function ISS_GUSStopOutput(PeriodicCall : Pointer) : Boolean;
 Begin
- ISS_GUSStopOutput:=ISS_StopTimer(PeriodicCall); { þ Stops timer call þ }
- ISS_GUSInit; { þ Reinitalizes soundcard þ }
+ ISS_GUSStopOutput:=ISS_StopTimer(PeriodicCall); { * Stops timer call * }
+ ISS_GUSInit; { * Reinitalizes soundcard * }
  {$IFDEF _ISS_GUS_DEBUGMODE_}
    WriteLn('DEV_INIT: ',ISS_GUSName,' output stopped.');
  {$ENDIF}
 End;
 
-Procedure ISS_GUSUpdateOutput; { þ Updates the sound output þ }
-{ þ This is the main driver, which runs on the timer at 140hz frequency þ }
-{ þ so it should be as fast as possible. Because it's a low-level driver, þ }
-{ þ hardware and platform dependent, it's a good idea to implement this þ }
-{ þ later again - in full-assembly. þ }
+Procedure ISS_GUSUpdateOutput; { * Updates the sound output * }
+{ * This is the main driver, which runs on the timer at 140hz frequency * }
+{ * so it should be as fast as possible. Because it's a low-level driver, * }
+{ * hardware and platform dependent, it's a good idea to implement this * }
+{ * later again - in full-assembly. * }
 Var ChannelCounter : Word;
     SampleBegin    : DWord;
     SampleEnd      : DWord;
@@ -656,7 +666,7 @@ Var ChannelCounter : Word;
     RealLoopEnd    : DWord;
 Begin
 
- { þ Stop Voices If Needed þ }
+ { * Stop Voices If Needed * }
  For ChannelCounter:=0 To ISS_GUSActiveChannels-1 Do Begin
    With ISS_VirtualChannels^[ChannelCounter] Do Begin
      If ((VChControl And ISS_CCActive)>0) And
@@ -669,27 +679,27 @@ Begin
     End;
   End;
 
- { þ Wait until volume slides ends þ }
+ { * Wait until volume slides ends * }
  For ChannelCounter:=0 To ISS_GUSActiveChannels-1 Do Begin
    GUSSetVoice(ChannelCounter);
    Repeat Until (GUSRead(ReadVolCtrl) And 1)>0;
   End;
 
- { þ Start Voices Update þ }
+ { * Start Voices Update * }
  For ChannelCounter:=0 To ISS_GUSActiveChannels-1 Do Begin
    GUSSetVoice(ChannelCounter);
    With ISS_VirtualChannels^[ChannelCounter] Do Begin
 
-     { þ Anything to do on this channel? þ }
+     { * Anything to do on this channel? * }
      If (VChControl>1) And ((VChControl And ISS_CCActive)>0) Then Begin
 
-       { þ Start a Sample ? þ }
+       { * Start a Sample ? * }
        If (VChControl And ISS_CCSample)>0 Then Begin
          Dec(VChControl,ISS_CCSample);
 
          With VChSmpAddr^ Do Begin
 
-           { þ 16bit sample values conversion þ }
+           { * 16bit sample values conversion * }
            If (SType And ISS_Smp16BitData)>0 Then Begin
              RealLength   :=SLength    Div 2;
              RealLoopStart:=SLoopStart Div 2;
@@ -700,51 +710,51 @@ Begin
              RealLoopEnd  :=SLoopEnd;
             End;
 
-           { þ Sample & Loop End Address Calc. þ }
-           { þ -1 is needed, because SampleEnd value _must_ contain the þ }
-           { þ _last_ sample position and not the last+1!!! þ }
+           { * Sample & Loop End Address Calc. * }
+           { * -1 is needed, because SampleEnd value _must_ contain the * }
+           { * _last_ sample position and not the last+1!!! * }
            SampleEnd:=SDRAMOffs+RealLength-1;
 
            If (SType And ISS_SmpPingPongLoop)>0 Then Begin
-             { þ Offset limit checking þ }
+             { * Offset limit checking * }
              If (VChSmpOffs>RealLength-1) Then VChSmpOffs:=RealLoopStart;
-             { þ Sample end value checking þ }
-             LoopEnd:=SDRAMOffs+RealLoopEnd-1; { þ Same here as above... þ }
+             { * Sample end value checking * }
+             LoopEnd:=SDRAMOffs+RealLoopEnd-1; { * Same here as above... * }
              If LoopEnd>SampleEnd Then LoopEnd:=SampleEnd;
             End Else Begin
              LoopEnd:=SampleEnd;
             End;
 
-           { þ Sample & Loop Start Address Calc. þ }
+           { * Sample & Loop Start Address Calc. * }
            SampleBegin:=SDRAMOffs+VChSmpOffs;
            LoopBegin  :=SDRAMOffs+RealLoopStart;
 
-           { þ Now we're going to tell to the GUS these values þ }
-           GUS_SetAddress(SampleEndLo,LoopEnd);       { þ Sample End þ }
-           GUS_SetAddress(LoopStartLo,LoopBegin);     { þ Loop Start þ }
+           { * Now we're going to tell to the GUS these values * }
+           GUS_SetAddress(SampleEndLo,LoopEnd);       { * Sample End * }
+           GUS_SetAddress(LoopStartLo,LoopBegin);     { * Loop Start * }
 
-           { þ Setting sample position þ }
-           GUS_SetAddress(SampleStartLo,SampleBegin); { þ Sample Start þ }
-           { þ Starting the sample... þ }
-           GUSWriteDelay(WriteVoiceMode,SType And %00011000); { þ Sample Mode þ }
+           { * Setting sample position * }
+           GUS_SetAddress(SampleStartLo,SampleBegin); { * Sample Start * }
+           { * Starting the sample... * }
+           GUSWriteDelay(WriteVoiceMode,SType And %00011000); { * Sample Mode * }
 
           End;
 
         End;
 
-       { þ Change Channel Panning ? þ }
+       { * Change Channel Panning ? * }
        If (VChControl And ISS_CCPanning)>0 Then Begin
          Dec(VChControl,ISS_CCPanning);
          GUSWrite(VoiceBalance,(VChFinalPanning Shr 4));
         End;
 
-       { þ Change Channel Volume ? þ }
+       { * Change Channel Volume ? * }
        If (VChControl And ISS_CCVolume)>0 Then Begin
          Dec(VChControl,ISS_CCVolume);
          GUS_FadeVol(ISS_GUSVol[VChFinalVolume Shl 2]);
         End;
 
-       { þ Change Channel Frequency ? þ }
+       { * Change Channel Frequency ? * }
        If (VChControl And ISS_CCPeriod)>0 Then Begin
          Dec(VChControl,ISS_CCPeriod);
          SampleFreq:=((VChFreq Shl 9)+(ISS_GUSDivisor Shr 1)) Div ISS_GUSDivisor;
@@ -752,7 +762,7 @@ Begin
          GUSWriteW(SetVoiceFreq,SampleFreq);
         End;
 
-       { þ Is Channel Still Active ? þ }
+       { * Is Channel Still Active ? * }
        If (GUSRead(Read) And 1)>0 Then Begin
          VChControl:=VChControl And Not ISS_CCActive;
         End;
@@ -765,9 +775,9 @@ Begin
 
 End;
 
-{ þ >>> P U B L I C  F U N C T I O N S <<< þ }
+{ * >>> P U B L I C  F U N C T I O N S <<< * }
 
-{ þ Inits the GUS driver structures þ }
+{ * Inits the GUS driver structures * }
 Procedure ISS_GUSDevInit;
 Begin
  With ISS_GUSDriver Do Begin
@@ -787,13 +797,13 @@ Begin
   WriteLn('DEV_INIT: Device - ',ISS_GUSLongDesc,' ',ISS_GUSVersionStr);
  {$ENDIF}
 
- { þ Reading ULTRASND Environment Settings þ }
+ { * Reading ULTRASND Environment Settings * }
  If UltraGetConfig(ISS_GUSHWSetup) Then Begin
-   { þ If ULTRASND found, assigning hardware parameters þ }
+   { * If ULTRASND found, assigning hardware parameters * }
    With ISS_GUSDevice Do Begin
-     DevName    :=ISS_GUSName; { þ Name of the device þ }
+     DevName    :=ISS_GUSName; { * Name of the device * }
      DevType    :=ISS_Dev16Bit+ISS_DevStereo+ISS_DevSigned
-                  +ISS_DevWaveTable;{ þ Device Type þ }
+                  +ISS_DevWaveTable;{ * Device Type * }
      With ISS_GUSHWSetup Do Begin
        DevBaseport:=Base_Port;
        DevIRQ     :=GF1_IRQ;
@@ -801,7 +811,7 @@ Begin
        DevDMA2    :=ADC_DMA;
        DevFreq    :=44100;
        DevMaxChan :=32;
-       DevDRAMSize:=0; { þ HardDetect will give a proper value þ }
+       DevDRAMSize:=0; { * HardDetect will give a proper value * }
        DevAvail   :=GUSHardDetect;
        Case GUS_Ver Of
          $FF  : Begin
@@ -839,4 +849,3 @@ End;
 
 Begin
 End.
-{ þ ISS_GUS.PAS - (C) 1998-2001 Charlie/Inquisition þ }

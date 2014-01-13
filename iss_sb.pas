@@ -1,29 +1,39 @@
-{ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿}
-{³ ş ISS_SB  .PAS - Device Driver for Sound Blaster and compatibles         ³}
-{³                  Work started     : 2000.05.14.                          ³}
-{³                  Last modification: 2001.06.18.                          ³}
-{³             OS - GO32V2 only.                                            ³}
-{³                                                                          ³}
-{³            ISS - Inquisition Sound Server for Free Pascal                ³}
-{³                  Code by Karoly Balogh (a.k.a. Charlie/iNQ)              ³}
-{³                  Copyright (C) 1998-2001 Inquisition                     ³}
-{ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ}
+{
+  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+
+  Permission to use, copy, modify, and/or distribute this software for
+  any purpose with or without fee is hereby granted, provided that the
+  above copyright notice and this permission notice appear in all copies.
+
+  THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+  WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+  THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+  CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+  LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+  NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+}
+
+{ * ISS_SB  .PAS - Device Driver for Sound Blaster and compatibles        }
+{             OS - GO32V2 only.                                           }
+
 {$INCLUDE ISS_SET.INC}
 {$ASMMODE INTEL}
 
-{$HINTS OFF} { ş Enable this if you modify the source! ş }
-{$NOTES OFF} { ş Enable this if you modify the source! ş }
+{$HINTS OFF} { * Enable this if you modify the source! * }
+{$NOTES OFF} { * Enable this if you modify the source! * }
 
 Unit ISS_SB;
 
 Interface
 
-Uses ISS_Var,  { ş Uses the system variables and types ş }
-     ISS_Mix,  { ş Uses the mixer ş }
-     ISS_Tim,  { ş Uses the timer services ş }
-     ISS_Hard, { ş Uses low level hardware routines ş }
-     GO32,     { ş Uses GO32 unit, because DOS-only driver ş }
-     DOS;      { ş Uses DOS unit, for environment variable access ş }
+Uses ISS_Var,  { * Uses the system variables and types * }
+     ISS_Mix,  { * Uses the mixer * }
+     ISS_Tim,  { * Uses the timer services * }
+     ISS_Hard, { * Uses low level hardware routines * }
+     GO32,     { * Uses GO32 unit, because DOS-only driver * }
+     DOS;      { * Uses DOS unit, for environment variable access * }
 
 Const ISS_SBVersionStr = '0.2.5';
 
@@ -35,14 +45,14 @@ Const ISS_SBVersionStr = '0.2.5';
            'Sound Blaster 1.x','Sound Blaster 2.0',
            'Sound Blaster PRO','Sound Blaster 16/ASP');
 
-Var ISS_SBDevice : ISS_TSoundDevice; { ş SB Device Structure ş }
-    ISS_SBDriver : ISS_TSoundDriver; { ş SB Device Driver ş }
+Var ISS_SBDevice : ISS_TSoundDevice; { * SB Device Structure * }
+    ISS_SBDriver : ISS_TSoundDriver; { * SB Device Driver * }
 
 Procedure ISS_SBDevInit;
 
 Implementation
 
-Type ISS_TSBHWSetup = Record { ş Used for SB detection ş }
+Type ISS_TSBHWSetup = Record { * Used for SB detection * }
        Base_Port  : Word;
        DAC_IRQ    : Word;
        Low_DMA    : Word;
@@ -54,16 +64,16 @@ Type ISS_TSBHWSetup = Record { ş Used for SB detection ş }
        ModeFlags  : Word;
       End;
 
-Var ISS_SBHWSetup      : ISS_TSBHWSetup; { ş SB Hardware Parameters ş }
-    ISS_SBPlayFreq     : Word;   { ş Current playing (not mixing!) freq. ş }
-    ISS_SBMixBufSize   : DWord;   { ş Current mixing buffer size ş }
-    ISS_SBPeriodicCall : Pointer; { ş Pointer to the tracker code ş }
-    ISS_SBBufNum       : Byte;    { ş Current buffer number ş }
-    ISS_SBDMAChan      : Byte;    { ş DMA channel ş }
+Var ISS_SBHWSetup      : ISS_TSBHWSetup; { * SB Hardware Parameters * }
+    ISS_SBPlayFreq     : Word;   { * Current playing (not mixing!) freq. * }
+    ISS_SBMixBufSize   : DWord;   { * Current mixing buffer size * }
+    ISS_SBPeriodicCall : Pointer; { * Pointer to the tracker code * }
+    ISS_SBBufNum       : Byte;    { * Current buffer number * }
+    ISS_SBDMAChan      : Byte;    { * DMA channel * }
 
-    { ş Data Selector Backup from GO32V2 system area for IRQ handling ş }
+    { * Data Selector Backup from GO32V2 system area for IRQ handling * }
     BackupDS : Word; External Name '___v2prt0_ds_alias';
-    { ş IRQ pointers ş }
+    { * IRQ pointers * }
     SB_OldIRQ : TSegInfo;
     SB_NewIRQ : TSegInfo;
 
@@ -71,24 +81,24 @@ Var ISS_SBHWSetup      : ISS_TSBHWSetup; { ş SB Hardware Parameters ş }
      DSPForceVersion : Word;
     {$ENDIF}
 
-Const DSPResetPort = $06; { ş DSP Reset port.                  Write Only. ş }
-      DSPReadPort  = $0A; { ş DSP Read data port.              Read  Only. ş }
-      DSPLifePort  = $0A; { ş DSP Read data port.              Read  Only. ş }
-      DSPWStatPort = $0C; { ş DSP Write buffer status port.    Write Only. ş }
-      DSPWritePort = $0C; { ş DSP Write data port.             Write Only. ş }
-      DSPRStatPort = $0E; { ş DSP Read buffer status port.     Read  Only. ş }
-      DSP8AckPort  = $0E; { ş  8 bit DMA IRQ Acknowledge port. Write Only. ş }
-      DSP16AckPort = $0F; { ş 16 bit DMA IRQ Acknowledge port. Write Only. ş }
+Const DSPResetPort = $06; { * DSP Reset port.                  Write Only. * }
+      DSPReadPort  = $0A; { * DSP Read data port.              Read  Only. * }
+      DSPLifePort  = $0A; { * DSP Read data port.              Read  Only. * }
+      DSPWStatPort = $0C; { * DSP Write buffer status port.    Write Only. * }
+      DSPWritePort = $0C; { * DSP Write data port.             Write Only. * }
+      DSPRStatPort = $0E; { * DSP Read buffer status port.     Read  Only. * }
+      DSP8AckPort  = $0E; { *  8 bit DMA IRQ Acknowledge port. Write Only. * }
+      DSP16AckPort = $0F; { * 16 bit DMA IRQ Acknowledge port. Write Only. * }
 
-      { ş DSP Commands ş }
-      DSP_SetTimeConst  = $040; { ş Sets the frequency time constant ş }
-      DSP_SetSampleRate = $041; { ş Sets the sampling rate (DSP4.0+) ş }
-      DSP_SetHSpeedSize = $048; { ş Sets blocksize for AI+HS DMA Transfer ş }
-      DSP_TurnOnSpeaker = $0D1; { ş Turn on the SB speaker ş }
-      DSP_GetVersion    = $0E1; { ş Returns the DSP version ş }
+      { * DSP Commands * }
+      DSP_SetTimeConst  = $040; { * Sets the frequency time constant * }
+      DSP_SetSampleRate = $041; { * Sets the sampling rate (DSP4.0+) * }
+      DSP_SetHSpeedSize = $048; { * Sets blocksize for AI+HS DMA Transfer * }
+      DSP_TurnOnSpeaker = $0D1; { * Turn on the SB speaker * }
+      DSP_GetVersion    = $0E1; { * Returns the DSP version * }
 
 
-{ ş >>> D E B U G  F U N C T I O N S <<< ş }
+{ * >>> D E B U G  F U N C T I O N S <<< * }
 
 {$IFDEF _ISS_SB_DEBUGMODE_}
  Function WriteHex(Num : Word) : String[4];
@@ -106,7 +116,7 @@ Const DSPResetPort = $06; { ş DSP Reset port.                  Write Only. ş }
 {$ENDIF}
 
 
-{ ş >>> I N T E R N A L  F U N C T I O N S <<< ş }
+{ * >>> I N T E R N A L  F U N C T I O N S <<< * }
 
 Function UpcaseString(S : String) : String;
 Var Counter : DWord;
@@ -191,7 +201,7 @@ Begin
  BlasterGetConfig:=False;
  EnvStr:=GetEnv('BLASTER');
  If EnvStr<>'' Then Begin
-   EnvStr:=UpcaseString(EnvStr); { ş Convert the env setting to uppercase ş }
+   EnvStr:=UpcaseString(EnvStr); { * Convert the env setting to uppercase * }
    With Config Do Begin
      Base_Port:=BlasterGetBasePort(EnvStr);
      DAC_IRQ:=BlasterGetIRQ(EnvStr);
@@ -203,7 +213,7 @@ Begin
 End;
 
 
-{ ş Reads the DSP status value ş }
+{ * Reads the DSP status value * }
 Function SB_DSPRead : Byte; Assembler;
 Asm
  MOV  DX,DSPRStatPort
@@ -225,7 +235,7 @@ Asm
  @Exit:
 End;
 
-{ ş Wait before writing to the DSP ş }
+{ * Wait before writing to the DSP * }
 Function SB_Wait : Boolean; Assembler;
 Asm
  MOV DX,DSPWritePort
@@ -246,7 +256,7 @@ Asm
  @Exit:
 End;
 
-{ ş Writes command value out to the DSP ş }
+{ * Writes command value out to the DSP * }
 Function SB_DSPWrite(Value : Byte) : Boolean;
 Begin
  SB_DSPWrite:=False;
@@ -261,7 +271,7 @@ Begin
   End;
 End;
 
-{ ş Resets the Sound Blaster DSP ş }
+{ * Resets the Sound Blaster DSP * }
 Function SB_DSPInit : Boolean; Assembler;
 Asm
  MOV  DX,DSPResetPort
@@ -306,16 +316,16 @@ Asm
  @Exit:
 End;
 
-{ ş Gets the Sound Blaster DSP version. ş }
+{ * Gets the Sound Blaster DSP version. * }
 Function SB_DSPGetVersion : Word;
 Var TempVersion  : Word;
 Begin
  SB_DSPGetVersion:=0;
 
- { ş Sending GetVersion DSP Command ş }
+ { * Sending GetVersion DSP Command * }
  If Not SB_DSPWrite(DSP_GetVersion) Then Exit;
 
- { ş Reading version ş }
+ { * Reading version * }
  TempVersion:=SB_DSPRead*256;
  TempVersion:=TempVersion+SB_DSPRead;
 
@@ -323,10 +333,10 @@ Begin
   TempVersion:=DSPForceVersion*256;
  {$ENDIF}
 
- { ş DSP versions below 2.0 currently not supported ş }
+ { * DSP versions below 2.0 currently not supported * }
  If TempVersion<$200 Then Exit;
 
- { ş Writing values into SBHWSetup record ş }
+ { * Writing values into SBHWSetup record * }
  With ISS_SBHWSetup Do Begin
    DSPVer_Maj:=Hi(TempVersion);
    DSPVer_Min:=Lo(TempVersion);
@@ -343,7 +353,7 @@ Begin
            ModeFlags:=ISS_Dev8Bit+ISS_DevMono+ISS_DevStereo+
                       ISS_DevUnsigned+ISS_DevMixed;
           End;
-     Else Begin { ş DSP 4.0+ ş }
+     Else Begin { * DSP 4.0+ * }
            MaxRate:=44100;
            ModeFlags:=ISS_Dev8Bit+ISS_Dev16Bit+ISS_DevMono+ISS_DevStereo+
                       ISS_DevSigned+ISS_DevUnsigned+ISS_DevMixed;
@@ -354,7 +364,7 @@ Begin
  SB_DSPGetVersion:=TempVersion;
 End;
 
-{ ş Detects SoundBlaster Hardware presence ş }
+{ * Detects SoundBlaster Hardware presence * }
 Function SB_HardDetect : Boolean;
 Begin
  SB_HardDetect:=False;
@@ -368,20 +378,20 @@ Asm
  MOV DX,$04
  ADD DX,ISS_SBDevice.DevBaseport
  MOV AL,$0E
- OUT DX,AL   { ş Select register $0E ş }
+ OUT DX,AL   { * Select register $0E * }
  INC DX
- IN  AL,DX   { ş Read register $0E ş }
+ IN  AL,DX   { * Read register $0E * }
 
- OR  AL,2    { ş Mask bit 1 to 1 ş }
+ OR  AL,2    { * Mask bit 1 to 1 * }
  MOV AH,AL
 
  DEC DX
- MOV AL,$0E  { ş MixerOutSetting ş }
+ MOV AL,$0E  { * MixerOutSetting * }
  OUT DX,AL
  INC DX
 
  MOV AL,AH
- OUT DX,AL   { ş Selecting stereo ş }
+ OUT DX,AL   { * Selecting stereo * }
 End;
 
 Procedure SB_SetPROMono; Assembler;
@@ -389,30 +399,30 @@ Asm
  MOV DX,$04
  ADD DX,ISS_SBDevice.DevBaseport
  MOV AL,$0E
- OUT DX,AL   { ş Select register $0E ş }
+ OUT DX,AL   { * Select register $0E * }
  INC DX
- IN  AL,DX   { ş Read register $0E ş }
+ IN  AL,DX   { * Read register $0E * }
 
- OR  AL,NOT 2    { ş Mask bit 1 to 0 ş }
+ OR  AL,NOT 2    { * Mask bit 1 to 0 * }
  MOV AH,AL
 
  DEC DX
- MOV AL,$0E  { ş MixerOutSetting ş }
+ MOV AL,$0E  { * MixerOutSetting * }
  OUT DX,AL
  INC DX
 
  MOV AL,AH
- OUT DX,AL   { ş Selecting stereo ş }
+ OUT DX,AL   { * Selecting stereo * }
 End;
 
 
-{ ş Calculates time constant & playing frequency ş }
+{ * Calculates time constant & playing frequency * }
 Function SB_GetTimeConstant(Var SmpRate : Word) : Byte;
 Var TimeConst : Byte;
     SRate     : Word;
 Begin
- { ş Calculating time constant from the specified mixing rate ş }
- { ş and calculating the correct mixing rate from timeconst ş }
+ { * Calculating time constant from the specified mixing rate * }
+ { * and calculating the correct mixing rate from timeconst * }
  SRate:=SmpRate;
  With ISS_SBDevice Do Begin
    If (DevType And ISS_DevStereo)>0 Then Begin
@@ -437,54 +447,54 @@ Begin
  SB_GetTimeConstant:=TimeConst;
 End;
 
-{ ş Starts playing the buffer using 8-bit mono Auto-initialize mode ş }
+{ * Starts playing the buffer using 8-bit mono Auto-initialize mode * }
 Procedure SB_PlayDMAAutoInit(TimeConst : Byte; TFLength : Word;
                              HighSpeed : Boolean);
 Begin
- { ş Writing time constant ş }
+ { * Writing time constant * }
  SB_DSPWrite(DSP_SetTimeConst);
  SB_DSPWrite(TimeConst);
 
- { ş Setting Transfer block length ş }
+ { * Setting Transfer block length * }
  SB_DSPWrite(DSP_SetHSpeedSize);
- SB_DSPWrite((TFLength-1) And $00FF); { ş Transfer length low byte ş }
- SB_DSPWrite((TFLength-1) Shr 8); { ş Transfer length high byte ş }
+ SB_DSPWrite((TFLength-1) And $00FF); { * Transfer length low byte * }
+ SB_DSPWrite((TFLength-1) Shr 8); { * Transfer length high byte * }
 
- If HighSpeed Then SB_DSPWrite($90)  { ş Start 8-bit PCM high-speed output ş }
-              Else SB_DSPWrite($1C); { ş Start 8-bit PCM output ş }
+ If HighSpeed Then SB_DSPWrite($90)  { * Start 8-bit PCM high-speed output * }
+              Else SB_DSPWrite($1C); { * Start 8-bit PCM output * }
 End;
 
-{ ş Starts playing the buffer using the DSP 4.00 Auto-initialize mode ş }
+{ * Starts playing the buffer using the DSP 4.00 Auto-initialize mode * }
 Procedure SB_Play400(SmpRate : Word; ModeFlags : Byte; TFLength : Word);
 Var RealBufSize : Word;
 Begin
- { ş Setting samplerate ş }
+ { * Setting samplerate * }
  SB_DSPWrite(DSP_SetSampleRate);
  SB_DSPWrite(SmpRate Shr 8);
  SB_DSPWrite(SmpRate And $00FF);
 
- { ş Setting up DSP4+ for the transfer ş }
+ { * Setting up DSP4+ for the transfer * }
  If (ModeFlags And ISS_Dev16Bit)>0 Then Begin
-   SB_DSPWrite($B4); { ş Start DMA Output, FIFO, 16Bit, AutoInit ş }
+   SB_DSPWrite($B4); { * Start DMA Output, FIFO, 16Bit, AutoInit * }
    RealBufSize:=(TFLength Div 2)-1;
   End Else Begin
-   SB_DSPWrite($C6); { ş Start DMA Output, FIFO, 8Bit, AutoInit ş }
+   SB_DSPWrite($C6); { * Start DMA Output, FIFO, 8Bit, AutoInit * }
    RealBufSize:=TFLength-1;
   End;
 
  If (ModeFlags And ISS_DevStereo)>0 Then Begin
-   SB_DSPWrite($30); { ş DMA is signed and stereo ş }
+   SB_DSPWrite($30); { * DMA is signed and stereo * }
   End Else Begin
-   SB_DSPWrite($10); { ş DMA is signed and mono ş }
+   SB_DSPWrite($10); { * DMA is signed and mono * }
   End;
 
- { ş Setting Transfer block length ş }
- SB_DSPWrite(RealBufSize And $00FF); { ş Transfer length low byte ş }
- SB_DSPWrite(RealBufSize Shr 8);     { ş Transfer length high byte ş }
+ { * Setting Transfer block length * }
+ SB_DSPWrite(RealBufSize And $00FF); { * Transfer length low byte * }
+ SB_DSPWrite(RealBufSize Shr 8);     { * Transfer length high byte * }
 End;
 
 
-{ ş >>> S O U N D  B L A S T E R  I R Q  R O U T I N E <<< ş }
+{ * >>> S O U N D  B L A S T E R  I R Q  R O U T I N E <<< * }
 
 Procedure ISS_SBIRQHandler;
 Type Proc = Procedure;
@@ -513,19 +523,19 @@ Asm
   MOV    AX,DosMemSelector
   MOV    FS,AX
 
-  { ş SB DSP IRQ Acknowledge ş }
+  { * SB DSP IRQ Acknowledge * }
   MOV    DX,ISS_SBDevice.DevBaseport
   CMP    ISS_SBDMAChan,4
   JA     @DSP16BitAck
    ADD    DX,DSP8AckPort
-   IN     AL,DX  { ş Acknowledge 8bit DSP IRQ ş }
+   IN     AL,DX  { * Acknowledge 8bit DSP IRQ * }
    JMP    @SBAckOk
   @DSP16BitAck:
    ADD    DX,DSP16AckPort
-   IN     AL,DX  { ş Acknowledge 16bit DSP IRQ ş }
+   IN     AL,DX  { * Acknowledge 16bit DSP IRQ * }
   @SBAckOk:
 
-  { ş Changing buffer ş }
+  { * Changing buffer * }
   MOVZX  EAX,ISS_SBBufNum
   ADD    EAX,1
   AND    EAX,1
@@ -537,24 +547,24 @@ Asm
   @BeginCopy:
   MOV    ISS_SBBufNum,AL
 
-  { ş Setting mixer to the new buffer ş }
+  { * Setting mixer to the new buffer * }
   MOV    EDX,ISS_MixerData
   MOV    EAX,ISS_DMAAddress
   ADD    EAX,EBX
   MOV    [EDX+20],EAX
 
-  { ş Calling soundsystem code ş }
+  { * Calling soundsystem code * }
   CALL   ISS_SBIRQHandler
 
-  { ş PC IRQ Controller ş }
-  MOV    DX,$20 { ş Interrupt request acknowledge (8bit PIC) ş }
+  { * PC IRQ Controller * }
+  MOV    DX,$20 { * Interrupt request acknowledge (8bit PIC) * }
   MOV    AL,$20
   OUT    DX,AL
   CMP    ISS_SBDevice.DevIRQ,7
   JBE    @Done
    MOV    DX,$0A0
    MOV    AL,$20
-   OUT    DX,AL  { ş Interrupt request acknowledge (16bit PIC#2) ş }
+   OUT    DX,AL  { * Interrupt request acknowledge (16bit PIC#2) * }
 
   @Done:
   POPAD
@@ -566,7 +576,7 @@ Asm
 End;
 
 
-{ ş >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< ş }
+{ * >>> E X T E R N A L  D E V I C E - D R I V E R  F U N C T I O N S <<< * }
 
 Function ISS_SBDetect : Boolean;
 Begin
@@ -595,52 +605,52 @@ Var MixBufSize  : DWord;
 Begin
  ISS_SBStartOutput:=False;
 
- Disable; { ş Stopping interrupts ş }
+ Disable; { * Stopping interrupts * }
 
- { ş Initialize Sound Blaster hardware ş }
+ { * Initialize Sound Blaster hardware * }
  If Not SB_DSPInit Then Exit;
  If Not SB_DSPWrite(DSP_TurnOnSpeaker) Then Exit;
- { ş Set stereo mode for SB Pro ş }
+ { * Set stereo mode for SB Pro * }
  If ISS_SBHWSetup.DSPVer_Maj=3 Then Begin
    SB_SetPROStereo;
   End;
 
- { ş Calculating values for 50hz timer ş }
+ { * Calculating values for 50hz timer * }
  ISS_SBPlayFreq:=ISS_SBDevice.DevMixRate;
  TimeConst:=SB_GetTimeConstant(ISS_SBPlayFreq);
  ISS_SBDevice.DevMixRate:=ISS_SBPlayFreq;
  ISS_SBMixBufSize:=ISS_SBPlayFreq Div 25;
 
- { ş Align buffer size ş }
+ { * Align buffer size * }
  ISS_SBMixBufSize:=ISS_SBMixBufSize+7;
  ISS_SBMixBufSize:=ISS_SBMixBufSize And $000FFFF8;
 
  With ISS_SBDevice Do Begin
 
-   { ş Setting mixer buffer size ş }
+   { * Setting mixer buffer size * }
    MixBufSize:=ISS_SBMixBufSize Div 8;
 
-   { ş Stereo buffer is two times bigger ş }
+   { * Stereo buffer is two times bigger * }
    If (DevType And ISS_DevStereo)>0 Then Begin
      ISS_SBMixBufSize:=ISS_SBMixBufSize*2;
     End;
-   { ş Mixer bufsize is not depends on sample resolution, since mixing is ş }
-   { ş always done in 16 bits ş }
-   { ş 16bit DMA buffer is two times bigger ş }
+   { * Mixer bufsize is not depends on sample resolution, since mixing is * }
+   { * always done in 16 bits * }
+   { * 16bit DMA buffer is two times bigger * }
    If (DevType And ISS_Dev16Bit)>0 Then Begin
      ISS_SBMixBufSize:=ISS_SBMixBufSize*2;
     End;
 
-   { ş Calculating timer calling frequency ş }
+   { * Calculating timer calling frequency * }
    ISS_TimerDiff:=ISS_TimerSpeed Div 200;
 
-   { ş Allocating DMA buffer ş }
+   { * Allocating DMA buffer * }
    ISS_DMAAllocBuffer;
 
-   { ş Initialize the mixer ş }
+   { * Initialize the mixer * }
    ISS_MixerInit(ISS_SBPlayFreq,MixBufSize,DosMemSelector,DWord(ISS_DMAAddress),DevType);
 
-   { ş Setting up DMA ş }
+   { * Setting up DMA * }
    If (DevType And ISS_Dev16Bit)>0 Then Begin
      ISS_SBDMAChan:=ISS_SBHWSetup.High_DMA;
     End Else Begin
@@ -651,14 +661,14 @@ Begin
    ISS_DMAStop(ISS_SBDMAChan);
    ISS_DMAStart(ISS_SBDMAChan,ISS_DMAAddress,ISS_SBMixBufSize*2,DMAMode);
 
-   { ş Setting up the IRQ ş }
-   SB_NewIRQ.Offset:=@ISS_SBIRQ; { ş Getting the new routine's address ş }
+   { * Setting up the IRQ * }
+   SB_NewIRQ.Offset:=@ISS_SBIRQ; { * Getting the new routine's address * }
    SB_NewIRQ.Segment:=Get_CS;
 
-   Get_PM_Interrupt(ISS_IRQMapping[DevIRQ],SB_OldIRQ); { ş Storing the old routine ş }
+   Get_PM_Interrupt(ISS_IRQMapping[DevIRQ],SB_OldIRQ); { * Storing the old routine * }
    If Set_PM_Interrupt(ISS_IRQMapping[DevIRQ],SB_NewIRQ) Then Begin
      ISS_SBPeriodicCall:=PeriodicCall;
-     ISS_IRQEnable(DevIRQ); { ş Enabling IRQ ş }
+     ISS_IRQEnable(DevIRQ); { * Enabling IRQ * }
      {$IFDEF _ISS_SB_DEBUGMODE_}
       WriteLn('DEV_INIT: Mixing Frequency:',ISS_SBPlayFreq,'Hz - Buffer Size:',ISS_SBMixBufSize,' bytes');
       WriteLn('DEV_INIT: Starting ',ISS_SBName,' output...');
@@ -666,15 +676,15 @@ Begin
      ISS_SBBufNum:=1;
 
      If ISS_SBHWSetup.DSPVer_Maj<4 Then Begin
-       { ş If DSP version below 4, then use the old way to start the output ş }
+       { * If DSP version below 4, then use the old way to start the output * }
        If ISS_SBPlayFreq>20000 Then Begin
-         { ş If frequency is above 20khz, use high speed transfer ş }
+         { * If frequency is above 20khz, use high speed transfer * }
          SB_PlayDMAAutoInit(TimeConst,ISS_SBMixBufSize,True);
         End Else Begin
          SB_PlayDMAAutoInit(TimeConst,ISS_SBMixBufSize,False);
         End;
       End Else Begin
-       { ş If SB16 or better, we use DSP4+ commands to start the output ş }
+       { * If SB16 or better, we use DSP4+ commands to start the output * }
        SB_Play400(ISS_SBPlayFreq,DevType,ISS_SBMixBufSize);
       End;
      ISS_SBStartOutput:=True;
@@ -687,7 +697,7 @@ Begin
     End;
   End;
 
- Enable; { ş Enabling Interrupts ş }
+ Enable; { * Enabling Interrupts * }
 
 End;
 
@@ -701,14 +711,14 @@ Begin
    Asm
     MOV    DX,ISS_SBDevice.DevBaseport
     ADD    DX,DSP16AckPort
-    IN     AL,DX  { ş Acknowledge 16bit DSP IRQ ş }
+    IN     AL,DX  { * Acknowledge 16bit DSP IRQ * }
    End;
   End Else Begin
    SB_DSPWrite($DA);
    Asm
     MOV    DX,ISS_SBDevice.DevBaseport
     ADD    DX,DSP8AckPort
-    IN     AL,DX  { ş Acknowledge 8bit DSP IRQ ş }
+    IN     AL,DX  { * Acknowledge 8bit DSP IRQ * }
    End;
   End;
  SB_DSPInit;
@@ -716,15 +726,15 @@ Begin
    ISS_IRQDisable(DevIRQ);
    ISS_SBStopOutput:=Set_PM_Interrupt(ISS_IRQMapping[DevIRQ],SB_OldIRQ);
   End;
- ISS_MixerDone;     { ş Closing the mixer ş }
- ISS_DMAFreeBuffer; { ş Deallocating DMA buffer ş }
+ ISS_MixerDone;     { * Closing the mixer * }
+ ISS_DMAFreeBuffer; { * Deallocating DMA buffer * }
  Enable;
  {$IFDEF _ISS_NSND_DEBUGMODE_}
    WriteLn('DEV_INIT: ',ISS_SBName,' output stopped.');
  {$ENDIF}
 End;
 
-{ ş This procedure assigns the device driver procedures ş }
+{ * This procedure assigns the device driver procedures * }
 Procedure ISS_SBDevInit;
 Begin
  ISS_TimerFreq:=50;
@@ -750,11 +760,11 @@ Begin
   ReadLn(DSPForceVersion);
  {$ENDIF}
 
- { ş Reading BLASTER Environment Settings ş }
+ { * Reading BLASTER Environment Settings * }
  If BlasterGetConfig(ISS_SBHWSetup) Then Begin
-   { ş If BLASTER found, assigning hardware parameters ş }
+   { * If BLASTER found, assigning hardware parameters * }
    With ISS_SBDevice Do Begin
-     DevName    :=ISS_SBName;  { ş Name of the device ş }
+     DevName    :=ISS_SBName;  { * Name of the device * }
      With ISS_SBHWSetup Do Begin
        DevBaseport:=Base_Port;
        DevAvail   :=SB_HardDetect;
@@ -764,11 +774,11 @@ Begin
          DevFreq    :=MaxRate;
          DevIRQ     :=DAC_IRQ;
          DevDMA1    :=Low_DMA;
-         { ş There is no High DMA on SBPro and below ş }
+         { * There is no High DMA on SBPro and below * }
          If Card_Type>3 Then DevDMA2:=High_DMA
                         Else DevDMA2:=$0FF;
          DevMaxChan :=ISS_MaxSSChannels;
-         DevDRAMSize:=0; { ş SBs' have no On-Board RAM. ş }
+         DevDRAMSize:=0; { * SBs' have no On-Board RAM. * }
         End;
       End;
 
@@ -794,4 +804,3 @@ End;
 
 Begin
 End.
-{ ş ISS_SB.PAS - (C) 2000-2001 Charlie/Inquisition ş }
