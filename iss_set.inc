@@ -16,9 +16,9 @@
 }
 
 { * ISS_SET .INC - System Directives Setup File                           }
-{             OS - Platform Independent (GO32V2,EMX tested)               }
+{             OS - Platform Independent                                   }
 
-{ * >>> L O A D E R  S E T T I N G S <<< * }
+{ * >>> H A N D L E R  S E T T I N G S <<< * }
 
 {$DEFINE _ISS_LOAD_DEBUGMODE_}
 { DEFINE _ISS_LOAD_NOFILEMODE_}
@@ -26,13 +26,14 @@
 { DEFINE _ISS_LOAD_CREATELOGFILE_}
 
 {$DEFINE _ISS_XM_INCLUDE_}
-{ DEFINE _ISS_MOD_INCLUDE_}
 { DEFINE _ISS_S3M_INCLUDE_}
+{$DEFINE _ISS_MOD_INCLUDE_}
 
 
 { * >>> D E V I C E  S E T T I N G S <<< * }
 
 {$IFDEF GO32V2}
+ {$DEFINE _ISS_SYS_SUPPORTED_}
  {$DEFINE _ISS_GUS_INCLUDE_}
  {$DEFINE _ISS_GUS_DEBUGMODE_}
 
@@ -46,6 +47,7 @@
 {$ENDIF}
 
 {$IFDEF OS2}
+ {$DEFINE _ISS_SYS_SUPPORTED_}
  {$DEFINE _ISS_GUSNATIVE_INCLUDE_}
  {$DEFINE _ISS_GUSNATIVE_DEBUGMODE_}
 
@@ -54,16 +56,44 @@
 {$ENDIF}
 
 {$IFDEF WIN32}
- {$FATAL WIN32 SUPPORT NOT IMPLEMENTED!}
+ { DEFINE _ISS_SYS_SUPPORTED_}
+ { DEFINE _ISS_WAVEOUT_INCLUDE_}
+ {$DEFINE _ISS_WAVEOUT_DEBUGMODE_}
+
  { DEFINE _ISS_DSOUND_INCLUDE_}
  {$DEFINE _ISS_DSOUND_DEBUGMODE_}
 {$ENDIF}
 
 {$IFDEF LINUX}
- {$FATAL LINUX SUPPORT NOT IMPLEMENTED!}
+ { DEFINE _ISS_SYS_SUPPORTED_}
  { DEFINE _ISS_OSS_INCLUDE_}
  {$DEFINE _ISS_OSS_DEBUGMODE_}
 {$ENDIF}
+
+{$IFDEF AMIGA}
+ { DEFINE _ISS_SYS_SUPPORTED_}
+ { DEFINE _ISS_AHI_INCLUDE_}
+ {$DEFINE _ISS_AHI_DEBUGMODE_} 
+
+ {$DEFINE _ISS_AMIGA_INCLUDE_}
+ {$DEFINE _ISS_AMIGA_DEBUGMODE_}
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+ { DEFINE _ISS_SYS_SUPPORTED_}
+ { DEFINE _ISS_AHI_INCLUDE_}
+ {$DEFINE _ISS_AHI_DEBUGMODE_}
+{$ENDIF}
+
+{$IFNDEF _ISS_SYS_SUPPORTED_}
+{$FATAL Support for this operating system is not implemented!}
+{$ENDIF}
+
+
+{ * Diskwriter device should be used for debugging purposes only, * }
+{ * because it's not fail safe. * }
+{$DEFINE _ISS_DISK_INCLUDE_}  
+{$DEFINE _ISS_DISK_DEBUGMODE_}
 
 
 { * >>> S O U N D S Y S T E M  S E T T I N G S <<< * }
@@ -78,6 +108,16 @@
 
 { * >>> G L O B A L  D E F I N E S <<< * }
 
+{$IFDEF I386}
 { * This is REQUIRED. If the record fields not aligned to WORD, * }
 { * the mixer WILL crash. This may change in the future. * }
-{$PACKRECORDS 2}
+ {$PACKRECORDS 2}
+{$ELSE}
+{$IFDEF M68K}
+{ * This is REQUIRED. If the record fields not aligned to DWORD, * }
+{ * the mixer WILL crash. This may change in the future. * }
+ {$PACKRECORDS 4}
+{$ELSE}
+{ * FIXME: have a default for now... I can't remember which is required... * }
+ {$PACKRECORDS 2}
+{$ENDIF}
