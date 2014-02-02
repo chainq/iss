@@ -28,8 +28,9 @@ Unit ISS_Play;
 
 Interface
 
-Uses ISS_Var, { * Uses system variables and types * }
-     ISS_Sys; { * Uses system functions * }
+Uses ISS_Var,  { * Uses system variables and types * }
+     ISS_Sys,  { * Uses system functions * }
+     ISS_Load; { * Uses the fileformat-handlers * }
 
 
 Type ISS_TPlayerChannel = Record
@@ -49,15 +50,20 @@ Type ISS_TPlayerChannel = Record
        ChRVolume : Byte; { * Volume of the current row * }
 
        { * Effect Variables * }
-       ChPortaUpData       : Byte; { * 01 Portamento Up * }
-       ChPortaDownData     : Byte; { * 02 Portamento Down * }
-       ChPortaToNoteData   : Byte; { * 03 PortaToNote * }
+       ChPortaUpData       : Word; { * 01 Portamento Up * }
+       ChPortaDownData     : Word; { * 02 Portamento Down * }
+       ChPortaToNoteData   : Word; { * 03 PortaToNote * }
        ChPortaToNotePeriod : Word; { * 03 PortaToNote * }
 
        ChVibSpeed          : Byte; { * 04 Vibrato * }
        ChVibDepth          : Byte; { * 04 Vibrato * }
        ChVibPosition       : Byte; { * 04 Vibrato * }
        ChVibWaveForm       : Byte; { * 04 Vibrato * }
+
+       ChTremSpeed         : Byte; { * 07 Tremolo * }
+       ChTremDepth         : Byte; { * 07 Tremolo * }
+       ChTremPosition      : Byte; { * 07 Tremolo * }
+       ChTremWaveForm      : Byte; { * 07 Tremolo * }
 
        ChSampleOffset : DWord; { * 09 Set Sample Offset * }
 
@@ -83,10 +89,11 @@ Type ISS_TPlayerChannel = Record
        SpeedCnt : Byte;  { * Tempo counter * }
        TickCnt  : Byte;  { * Tick counter  * }
 
-       Order   : Word; { * Current Order Pos (Can be used for synchro) * }
-       Pattern : Word; { * Current Pattern   (Can be used for synchro) * }
-       Row     : Word; { * Current Row       (Can be used for synchro) * }
-       Rows    : Word; { * Rows in current pattern * }
+       Order    : Word; { * Current Order Pos (Can be used for synchro) * }
+       Pattern  : Word; { * Current Pattern   (Can be used for synchro) * }
+       Row      : Word; { * Current Row       (Can be used for synchro) * }
+       Rows     : Word; { * Rows in current pattern * }
+       MusicEnd : Boolean; { * True if the current music reached end. * }
 
        CChannel : Word; { * Current Channel number * }
        CNote    : Word; { * Current Note * }
@@ -97,7 +104,10 @@ Type ISS_TPlayerChannel = Record
        CFXType  : Word; { * Current Command * }
        CFXParm  : Word; { * Current Command parameter * }
 
-       PatternOffset : ISS_PPattern; { * Current Pattern Offset * }
+       { * Pointer to current pattern value * }
+       CurrentPattern     : ISS_PPattern;
+       { * Pointer to current _DECODED_ pattern data * }
+       CurrentPatternData : ISS_PDecodedPattern;
 
        PatternDelay : Byte;
        NextOrder    : Integer;
@@ -108,17 +118,9 @@ Type ISS_TPlayerChannel = Record
       End;
      ISS_PPlayer = ^ISS_TPlayer;
 
-     { * Unpacked Pattern Structures * }
-     ISSPlay_TUnpackedPattern = Array[1..256,0..31] Of ISS_TPatternRow;
-     ISSPlay_PUnpackedPattern = ^ISSPlay_TUnpackedPattern;
-
 
 Var ISS_Player   : ISS_PPlayer;
-    ISS_MusicEnd : Boolean; { * True if the current music reached it's end. * }
-
-    ISSPlay_InAction       : Boolean;     { * True if player in work * }
-    { * Pointer to current _UNPACKED_ pattern data * }
-    ISSPlay_CurrentPatternData : ISSPlay_PUnpackedPattern;
+    ISSPlay_InAction : Boolean;     { * True if player in work * }
 
 Function  ISS_GetOrder : Word;
 Procedure ISS_SetOrder(OrderToSet : Word);
@@ -129,10 +131,6 @@ Function ISS_StopModulePlay : Boolean;
 Function ISS_DoneModulePlay : Boolean;
 
 Implementation
-
-{ * Internal variables used by effect processing * }
-Var FXToCall : Procedure(FXParam : Word);
-    FXToDo   : Procedure;
 
 { * >>> F O R W A R D  D E C L A R A T I O N S <<< * }
 
@@ -152,9 +150,11 @@ Begin
  With ISS_Player^ Do Begin
    With Channels[CChannel] Do Begin
 
-     ISS_StartInstrument(CChannel,ChInstr,ChNote);
-     ChPeriod:=ISS_GetPeriod(CChannel);
-
+     If ChInstr>0 Then Begin
+       ISS_StartInstrument(CChannel,ChInstr,ChNote);
+       ChPeriod:=ISS_GetPeriod(CChannel);
+      End;
+      
     End;
   End;
 End;
@@ -165,57 +165,48 @@ Begin
  With ISS_Player^ Do Begin
 
    With Channels[CChannel] Do Begin
-     If CInstr<>0 Then Begin
-       ChInstr:=CInstr;
-      End;
-     ChNote:=CNote;
 
-     Case ChNote Of
-       FXKeyOff : Begin ISS_KeyOff(CChannel); End;
-       0..96 : Begin
-              ISS_InitInstrument(CChannel);
-              If (CFXType<>FXPortaNote) And
-                 (CVFXType<>FXVolPortaNote) Then Begin
-                ISSPlay_StartInstrument;
-               End;
-             End;
-
+     If CInstr<>0 Then ChInstr:=CInstr;
+     If CNote<>0 Then Begin
+       ChNote:=CNote;
+       Case ChNote Of
+         FXKeyOff : Begin ISS_KeyOff(CChannel); End;
+         0..96 : Begin
+                ISS_InitInstrument(CChannel);
+                If (CFXType<>FXPortaNote) And
+                  (CVFXType<>FXVolPortaNote) Then Begin
+                  ISSPlay_StartInstrument;
+                 End;
+          End;
+        End;
       End;
+      
     End;
-
   End;
 End;
 
 { * Process a volume effect * }
 Procedure ISSPlay_ProcessVolumeFX(FXNum : DWord; FXParam : Word);
 Begin
- If FXNum>10 Then Exit;
- FXToCall:=FXVolProcs[FXNum].Proc;
- FXToCall(FXParam);
+ If FXNum<=10 Then FXVolProcs[FXNum].Proc(FXParam);
 End;
 
 { * Process an effect * }
 Procedure ISSPlay_ProcessFX(FXNum : DWord; FXParam : Word);
 Begin
- If FXNum>51 Then Exit;
- FXToCall:=FXProcs[FXNum].Proc;
- FXToCall(FXParam);
+ If FXNum<=51 Then FXProcs[FXNum].Proc(FXParam);
 End;
 
 { * Process Volume Effects * }
 Procedure ISSPlay_DoVolumeFX(FXNum : DWord);
 Begin
- If FXNum>10 Then Exit;
- FXToDo:=FXVolProcs[FXNum].Sust;
- FXToDo;
+ If FXNum<10 Then FXVolProcs[FXNum].Sust;
 End;
 
 { * Execute an ongoing Effect * }
 Procedure ISSPlay_DoFX(FXNum : DWord);
 Begin
- If FXNum>51 Then Exit;
- FXToDo:=FXProcs[FXNum].Sust;
- FXToDo;
+ If FXNum<=51 Then FXProcs[FXNum].Sust;
 End;
 
 { * Execute ongoing Effects * }
@@ -252,7 +243,7 @@ Begin
      CChannel:=Counter; { * Setting current channel for effects * }
 
      With Channels[Counter] Do Begin
-       With ISSPlay_CurrentPatternData^[Row,Counter] Do Begin
+       With CurrentPatternData^[Row,Counter] Do Begin
          CNote   :=RNote;  { * Reading Note * }
          ChRNote :=RNote;
          CInstr  :=RInstr; { * Reading Instrument * }
@@ -285,8 +276,8 @@ Begin
        CVolume :=0;
       End;
 
-     { * Start note if there is no note delay and note<>0 * }
-     If (CFXType<>FXNoteDelay) And (CNote<>0) Then ISSPlay_StartNote;
+     { * Start note if there is no note delay * }
+     If (CFXType<>FXNoteDelay) Then ISSPlay_StartNote;
 
      With Channels[Counter] Do Begin
        { * Process Channel Volume * }
@@ -307,7 +298,12 @@ Begin
        If CInstr<>0 Then Begin
          With ISS_VirtualChannels^[CChannel] Do Begin
            If VChSmpAddr<>Nil Then ChPanning:=VChSmpAddr^.SPanning;
-           ISS_SetPanning(CChannel,ChPanning);
+           { * Protracker/Amiga panning support... * }
+           If ISS_CurrentModule^.MTracker=ISS_TrackerID_PRO Then Begin
+             ISS_SetPanning(CChannel,ISS_AmigaPanningTable[CChannel And 3]);
+            End Else Begin
+             ISS_SetPanning(CChannel,ChPanning);
+            End;
           End;
         End;
 
@@ -334,98 +330,8 @@ Procedure ISSPlay_DoChangeRow;
 Begin
  With ISS_Player^ Do Begin
 
-   If PatternOffset<>Nil Then Begin
-     If PatternOffset^.PatRowsNum<NextRow Then Row:=0 Else Row:=NextRow;
-    End;
-
+   If CurrentPattern^.PatRowsNum<NextRow Then Row:=0 Else Row:=NextRow;
    NextRow:=-1;
-
-  End;
-End;
-
-{ * Unpacks the current pattern. Should be optimized, because it's slow. * }
-Procedure ISSPlay_UnpackPattern;
-Var BufPtr   : Pointer;
-    BufValue : Byte;
-    Counter  : DWord;
-    Counter2 : DWord;
-Begin
- With ISS_Player^ Do Begin
-
-   BufPtr:=PatternOffset^.PatRows;
-
-   For Counter:=1 To Rows Do Begin
-     For Counter2:=0 To ISS_CurrentModule^.MChannels-1 Do Begin
-       With ISSPlay_CurrentPatternData^[Counter,Counter2] Do Begin
-
-         BufValue:=Byte(BufPtr^);
-         Inc(DWord(BufPtr),1);
-
-         { * Packed Note? * }
-         If (BufValue And %10000000)>0 Then Begin
-           { * Yes, it's packed unpack note * }
-
-           { * Note Follows? * }
-           If (BufValue And %00000001)>0 Then Begin
-             RNote:=Byte(BufPtr^);
-             Inc(DWord(BufPtr),1);
-            End Else Begin
-             RNote:=0;
-            End;
-
-           { * Instrument Follows? * }
-           If (BufValue And %00000010)>0 Then Begin
-             RInstr:=Byte(BufPtr^);
-             Inc(DWord(BufPtr),1);
-            End Else Begin
-             RInstr:=0;
-            End;
-
-           { * Volume Column Follows? * }
-           If (BufValue And %00000100)>0 Then Begin
-             RVolCol:=Byte(BufPtr^);
-             Inc(DWord(BufPtr),1);
-            End Else Begin
-             RVolCol:=0;
-            End;
-
-           { * Effect Type Follows? * }
-           If (BufValue And %00001000)>0 Then Begin
-             RFXType:=Byte(BufPtr^);
-             Inc(DWord(BufPtr),1);
-            End Else Begin
-             RFXType:=0;
-            End;
-
-           { * Effect Parameter Follows? * }
-           If (BufValue And %00010000)>0 Then Begin
-             RFXParm:=Byte(BufPtr^);
-             Inc(DWord(BufPtr),1);
-            End Else Begin
-             RFXParm:=0;
-            End;
-
-          End Else Begin
-           { * No, it's unpacked, just copy values * }
-
-           { * Copies 5 bytes to unpacked pattern data * }
-           RNote:=BufValue;
-           RInstr:=Byte(BufPtr^);  Inc(DWord(BufPtr),1);
-           RVolCol:=Byte(BufPtr^); Inc(DWord(BufPtr),1);
-           RFXType:=Byte(BufPtr^); Inc(DWord(BufPtr),1);
-           RFXParm:=Byte(BufPtr^); Inc(DWord(BufPtr),1);
-
-          End;
-
-         { * Now convert Exx effect code to 36+ effect code * }
-         If RFXType=14 Then Begin
-           RFXType:=((RFXParm And $0F0) Shr 4)+36;
-           RFXParm:=(RFXParm And $00F);
-          End;
-
-        End;
-      End;
-    End;
 
   End;
 End;
@@ -438,16 +344,15 @@ Begin
 
      { * Loop the song if next order > song length * }
      If NextOrder>MSongLength-1 Then Begin
-       ISS_MusicEnd:=True;
+       MusicEnd:=True;
        Order:=MRestart;
       End Else Order:=NextOrder;
 
      Pattern:=MOrders[Order];
-     PatternOffset:=MPatterns[Pattern];
-     If PatternOffset=Nil Then Rows:=64 { * Play a 64 rows empty pattern * }
-                          Else Rows:=PatternOffset^.PatRowsNum;
-
-     ISSPlay_UnpackPattern; { * Unpacks new actual pattern * }
+     CurrentPattern:=MPatterns[Pattern];
+     Rows:=CurrentPattern^.PatRowsNum;
+     { * Unpacks the new current pattern * }
+     ISS_DecodePattern(CurrentPattern,CurrentPatternData);
      NextOrder:=-1; { * Reset Order Value * }
 
     End;
@@ -479,7 +384,9 @@ Begin
         End;
       End;
 
-     If NextRow<>-1 Then ISSPlay_DoChangeRow; { * Change Row Number * }
+     If NextRow<>-1 Then Begin
+       ISSPlay_DoChangeRow; { * Change Row Number * }
+      End;
 
      Inc(Row); { * Go to next Row * }
      ISSPlay_ProcessRow; { * Process Row * }
@@ -552,7 +459,6 @@ Begin
    { * Resetting Player Variables * }
    New(ISS_Player); { * Allocating Variable Memory * }
    FillChar(ISS_Player^,SizeOf(ISS_TPlayer),#0);
-   ISS_MusicEnd:=False;
 
    { * Setting Current Module * }
    ISS_CurrentModule:=Module;
@@ -610,8 +516,8 @@ Begin
       WriteLn(' [',LoadedSmpNum,'] - DONE');
      {$ENDIF}
 
-     { * Allocating Unpacked Pattern Memory * }
-     New(ISSPlay_CurrentPatternData);
+     { * Allocating Decoded Pattern Memory * }
+     New(ISS_Player^.CurrentPatternData);
 
     End;
 
@@ -700,8 +606,8 @@ Begin
    {$ENDIF}
   End;
 
- { * Deallocating Unpacked Pattern Memory * }
- Dispose(ISSPlay_CurrentPatternData);
+ { * Deallocating Decoded Pattern Memory * }
+ Dispose(ISS_Player^.CurrentPatternData);
  { * Deallocating Player Variables * }
  Dispose(ISS_Player);
  { * Clearing currentmodule pointer * }
