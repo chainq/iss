@@ -30,6 +30,7 @@ Const { * Effect Numbers * }
       FXVibrato      =  4; { * 04-4xy Vibrato                 (MOD) * }
       FXPortVolSlide =  5; { * 05-5xy Portamento+Volume Slide (MOD) * }
       FXVibVolSlide  =  6; { * 06-6xy Vibrato+Volume Slide    (MOD) * }
+      FXTremolo      =  7; { * 07-7xy Tremolo                 (MOD) * }
       FXSetPanning   =  8; { * 08-8xx Set Panning ($0-$80)    (MOD/DMP) * }
       FXSetOffset    =  9; { * 09-9xx Set Sample Offset       (MOD) * }
       FXVolumeSlide  = 10; { * 10-Axy Volume Slide            (MOD) * }
@@ -157,64 +158,47 @@ End;
 
 { * Command : Do Portamento Up   * }
 Procedure DoPortaUp;
-Var Buf1,Buf2 : DWord;
 Begin
  With ISS_Player^ Do Begin
    With Channels[CChannel] Do Begin
-     Buf1:=ChPortaUpData;
-     Buf1:=Buf1 Shl 2;
-     Buf2:=ChPeriod;
-     Dec(Buf2,Buf1);
-     ISS_SetPeriod(CChannel,Buf2);
-     ChPeriod:=Buf2;
+
+     Dec(ChPeriod,ChPortaUpData);
+     ISS_SetPeriod(CChannel,ChPeriod);
+
     End;
   End;
 End;
 
 { * Command : Do Portamento Down * }
 Procedure DoPortaDown;
-Var Buf1,Buf2 : DWord;
 Begin
  With ISS_Player^ Do Begin
    With Channels[CChannel] Do Begin
-     Buf1:=ChPortaDownData;
-     Buf1:=Buf1 Shl 2;
-     Buf2:=ChPeriod;
-     Inc(Buf2,Buf1);
-     ISS_SetPeriod(CChannel,Buf2);
-     ChPeriod:=Buf2;
+
+     Inc(ChPeriod,ChPortaDownData);
+     ISS_SetPeriod(CChannel,ChPeriod);
+
     End;
   End;
 End;
 
 { * Command : Do Porta To Note   * }
 Procedure DoPortaNote;
-Var Buf1,Buf2,Buf3 : DWord;
 Begin
  With ISS_Player^ Do Begin
    With Channels[CChannel] Do Begin
-     Buf1:=ChPortaToNoteData;
-     Buf1:=Buf1 Shl 2;
-     Buf2:=ChPeriod;
-     Buf3:=ChPortaToNotePeriod;
-     If (Buf3<>0) And (Buf3<>Buf2) Then Begin
-       If Buf2<=Buf3 Then Begin
-         Inc(Buf2,Buf1);
-         If Buf2<=Buf3 Then Begin
-           ISS_SetPeriod(CChannel,Buf2);
-           ChPeriod:=Buf2;
-           Exit;
-          End;
-          Buf2:=Buf3;
-        End;
-       If Buf2<=Buf1 Then Buf2:=Buf3
-                     Else Begin
-                      Buf2:=Buf2-Buf1;
-                      If Buf2<Buf3 Then Buf2:=Buf3;
-                     End;
-       ISS_SetPeriod(CChannel,Buf2);
-       ChPeriod:=Buf2;
+
+     If ChPeriod<ChPortaToNotePeriod Then Begin
+       Inc(ChPeriod,ChPortaToNoteData);
+       If ChPeriod>ChPortaToNotePeriod Then ChPeriod:=ChPortaToNotePeriod;
+       ISS_SetPeriod(CChannel,ChPeriod);
+      End Else
+     If ChPeriod>ChPortaToNotePeriod Then Begin
+       Dec(ChPeriod,ChPortaToNoteData);
+       If ChPeriod<ChPortaToNotePeriod Then ChPeriod:=ChPortaToNotePeriod;
+       ISS_SetPeriod(CChannel,ChPeriod);
       End;
+
     End;
   End;
 End;
@@ -229,7 +213,7 @@ Begin
 
      BufPeriod:=ChPeriod;
      BufVibValue:=((ISS_SineTable[ChVibPosition And 127]*ChVibDepth) Div 128);
-     If ChVibPosition>127 Then Inc(BufPeriod,BufVibValue)
+     If ChVibPosition<127 Then Inc(BufPeriod,BufVibValue)
                           Else Dec(BufPeriod,BufVibValue);
 
      ISS_SetPeriod(CChannel,BufPeriod);
@@ -285,6 +269,33 @@ Begin
  DoVibrato;
  DoVolumeSlide;
 End;
+
+{ * Command : Do Tremolo * }
+Procedure DoTremolo;
+Var BufVolume    : Integer;
+    BufTremValue : Byte;
+Begin
+ With ISS_Player^ Do Begin
+   With Channels[CChannel] Do Begin
+
+     BufVolume:=ChVolume;
+     BufTremValue:=((ISS_SineTable[ChTremPosition And 127]*ChTremDepth) Div 64);
+     If ChTremPosition<127 Then Begin
+        Inc(BufVolume,BufTremValue);
+        If BufVolume>64 Then BufVolume:=64;
+      End Else Begin
+        Dec(BufVolume,BufTremValue);
+        If BufVolume<0 Then BufVolume:=0;
+      End;
+
+     ISS_SetVolume(CChannel,BufVolume);
+
+     Inc(ChTremPosition,ChTremSpeed*4);
+
+    End;
+  End;
+End;
+
 
 { * Command : Do Global Volume Slide * }
 Procedure DoGVolumeSlide;
@@ -346,7 +357,7 @@ End;
 Procedure ProcPortaUp(PortaTo : Word);
 Begin
  With ISS_Player^ Do Begin
-   If PortaTo<>0 Then Channels[CChannel].ChPortaUpData:=PortaTo;
+   If PortaTo<>0 Then Channels[CChannel].ChPortaUpData:=PortaTo Shl 2;
   End;
 End;
 
@@ -354,7 +365,7 @@ End;
 Procedure ProcPortaDown(PortaTo : Word);
 Begin
  With ISS_Player^ Do Begin
-   If PortaTo<>0 Then Channels[CChannel].ChPortaDownData:=PortaTo;
+   If PortaTo<>0 Then Channels[CChannel].ChPortaDownData:=PortaTo Shl 2;
   End;
 End;
 
@@ -364,9 +375,13 @@ Begin
  With ISS_Player^ Do Begin
    With Channels[CChannel] Do Begin;
      If PortaTo<>0 Then
-       ChPortaToNoteData:=PortaTo;
-     If CNote<>0 Then
+       ChPortaToNoteData:=PortaTo Shl 2;
+     If (CNote>0) And (CNote<97) Then
        ChPortaToNotePeriod:=ISS_ChGetNotePeriod(CChannel,CNote);
+
+     { * Porta to note processed in the head tick too * }
+//     DoPortaNote; // NOT FOR MOD!!!
+
     End;
   End;
 End;
@@ -392,7 +407,7 @@ Begin
         (ChVibWaveForm<4) Then ChVibPosition:=0;
 
      { * Vibrato processed in the head tick too * }
-     DoVibrato;
+     DoVibrato; // NOT FOR MOD!!!
 
     End;
   End;
@@ -434,18 +449,24 @@ Begin
      VolSlideUp:=(VolToSlide And $0F0) Shr 4;
      VolSlideDn:=VolToSlide And $00F;
 
-     { * Up & Downslide can't performed together, so we do nothing * }
-     { * in this case * }
-     If (VolSlideUp>0) And (VolSlideDn>0) Then Exit;
+     If (VolSlideUp>0) And (VolSlideDn>0) Then Begin
 
-     { * Upslide? * }
-     If (VolSlideUp>0) Then Begin
-       ChVolSlideData:=VolSlideUp;
-      End;
+       { * Up & Downslide can't performed together, so we do nothing * }
+       { * in this case * }
+       ChVolSlideData:=0;
 
-     { * Downslide? * }
-     If (VolSlideDn>0) Then Begin
-       ChVolSlideData:=0-VolSlideDn;
+      End Else Begin
+
+       { * Upslide? * }
+       If (VolSlideUp>0) Then Begin
+         ChVolSlideData:=VolSlideUp;
+        End;
+
+       { * Downslide? * }
+       If (VolSlideDn>0) Then Begin
+         ChVolSlideData:=0-VolSlideDn;
+        End;
+
       End;
 
     End;
@@ -489,16 +510,54 @@ End;
 { * Command : Process Portamento+VolumeSlide * }
 Procedure ProcPortVolSlide(VolToSlide : Word);
 Begin
- ProcPortaNote(0);
- ProcVolumeSlide(VolToSlide);
+ With ISS_Player^ Do Begin
+   ProcPortaNote(0);
+
+   If ISS_CurrentModule^.MTracker=ISS_TrackerID_PRO Then Begin
+     If VolToSlide=0 Then VolToSlide:=ISS_GetVolume(CChannel);
+    End;
+   ProcVolumeSlide(VolToSlide);
+
+  End;
 End;
 
 { * Command : Process Vibrato+VolumeSlide * }
 Procedure ProcVibVolSlide(VolToSlide : Word);
 Begin
- ProcVibrato(0);
- ProcVolumeSlide(VolToSlide);
+ With ISS_Player^ Do Begin
+   ProcVibrato(0);
+
+   If ISS_CurrentModule^.MTracker=ISS_TrackerID_PRO Then Begin
+     If VolToSlide=0 Then VolToSlide:=ISS_GetVolume(CChannel);
+    End;
+   ProcVolumeSlide(VolToSlide);
+
+  End;
 End;
+
+{ * Command : Process Tremolo * }
+Procedure ProcTremolo(TremValues : Word);
+Var TremSpeed : Byte;
+    TremDepth : Byte;
+Begin
+ With ISS_Player^ Do Begin
+   With Channels[CChannel] Do Begin
+
+     TremSpeed:=(TremValues And $0F0) Shr 4;
+     TremDepth:=TremValues And $00F;
+
+     { * If a parameter is zero, we're using previous values * }
+     If TremSpeed>0 Then ChTremSpeed:=TremSpeed;
+     If TremDepth>0 Then ChTremDepth:=TremDepth;
+
+     { * If previous command wasn't tremolo and we're in retrigger * }
+     { * mode, then retrig tremolo * }
+     If (ChFXType<>FXTremolo) And (ChTremWaveForm<4) Then ChTremPosition:=0;
+
+    End;
+  End;
+End;
+
 
 { * Command : Process Set BPM * }
 Procedure ProcSetBPM(BPMToSet : Word);
@@ -552,6 +611,31 @@ Begin
     End;
   End;
 End;
+
+{ * Command : Process Fine Volume Slide Up * }
+Procedure ProcFinePortaUp(FreqToSub : Word);
+Begin
+ With ISS_Player^ Do Begin
+   With Channels[CChannel] Do Begin
+{     Inc(ChVolume,VolToAdd);
+     If ChVolume>64 Then ChVolume:=64;
+     ISS_SetVolume(CChannel,ChVolume);}
+    End;
+  End;
+End;
+
+{ * Command : Process Fine Volume Slide Down * }
+Procedure ProcFinePortaDown(FreqToAdd : Word);
+Begin
+ With ISS_Player^ Do Begin
+   With Channels[CChannel] Do Begin
+{     If ChVolume<VolToSub Then ChVolume:=0
+                          Else Dec(ChVolume,VolToSub);
+     ISS_SetVolume(CChannel,ChVolume);}
+    End;
+  End;
+End;
+
 
 { * Command : Process Fine Volume Slide Up * }
 Procedure ProcFineVolSldUp(VolToAdd : Word);
@@ -636,7 +720,7 @@ Const { * The processing table * }
  (Proc:@ProcVibrato;        Sust:@DoVibrato),         { * 04-4xy Vibrato                 (MOD) * }
  (Proc:@ProcPortVolSlide;   Sust:@DoPortVolSlide),    { * 05-5xy Portamento+Volume Slide (MOD) * }
  (Proc:@ProcVibVolSlide;    Sust:@DoVibVolSlide),     { * 06-6xy Vibrato+Volume Slide    (MOD) * }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { * 07-7xy Tremolo                !(MOD) * }
+ (Proc:@ProcTremolo;        Sust:@DoTremolo),         { * 07-7xy Tremolo                 (MOD) * }
  (Proc:@ProcSetPanning;     Sust:@DoDummy),           { * 08-8xx Set Panning ($0-$80)    (MOD/DMP) * }
  (Proc:@ProcSetSampOffset;  Sust:@DoDummy),           { * 09-9xx Set Sample Offset       (MOD) * }
  (Proc:@ProcVolumeSlide;    Sust:@DoVolumeSlide),     { * 10-Axy Volume Slide            (MOD) * }
@@ -667,8 +751,8 @@ Const { * The processing table * }
  (Proc:@ProcDummy;          Sust:@DoDummy),           { * 32-Z                                 * }
  { * Extended effects * }
  (Proc:@ProcDummy;          Sust:@DoDummy),           { * 36-E0x Set AMiGA Filter       #(MOD) * }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { * 37-E1x Fine Portamento Up     !(MOD) * }
- (Proc:@ProcDummy;          Sust:@DoDummy),           { * 38-E1x Fine Portamento Down   !(MOD) * }
+ (Proc:@ProcFinePortaUp;    Sust:@DoDummy),           { * 37-E1x Fine Portamento Up     !(MOD) * }
+ (Proc:@ProcFinePortaDown;  Sust:@DoDummy),           { * 38-E1x Fine Portamento Down   !(MOD) * }
  (Proc:@ProcDummy;          Sust:@DoDummy),           { * 39-E3x Glissando Control      #(MOD) * }
  (Proc:@ProcDummy;          Sust:@DoDummy),           { * 40-E4x Set Vibrato Waveform   !(MOD) * }
  (Proc:@ProcDummy;          Sust:@DoDummy),           { * 41-E5x Set Finetune           !(MOD) * }
@@ -694,6 +778,6 @@ Const { * The volume effect processing table * }
  (Proc:@ProcDummy;          Sust:@DoDummy),              { * 5 - Set vibrato speed      ! * }
  (Proc:@ProcDummy;          Sust:@DoDummy),              { * 6 - Vibrato                ! * }
  (Proc:@ProcVSetPanning;    Sust:@DoDummy),              { * 7 - Set Panning              * }
- (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideLeft),  { * 8 - Panning Slide Left     ! * }
- (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideRight), { * 9 - Panning Slide Right    ! * }
+ (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideLeft),  { * 8 - Panning Slide Left       * }
+ (Proc:@ProcVPanningSlide;  Sust:@DoVPanningSlideRight), { * 9 - Panning Slide Right      * }
  (Proc:@ProcDummy;          Sust:@DoDummy));             { * A - Porta to Note          ! * }
