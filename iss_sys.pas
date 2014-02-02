@@ -25,7 +25,7 @@ Unit ISS_Sys;
 Interface
 
 Uses ISS_Var,  { * Uses the system variables and types * }
-     ISS_Load  { * Uses the file-loader functions * }
+     ISS_Load  { * Uses the file-handler functions * }
      {$IFDEF _ISS_GUS_INCLUDE_}
       ,ISS_GUS { * Include GUS * }
      {$ENDIF}
@@ -46,6 +46,9 @@ Uses ISS_Var,  { * Uses the system variables and types * }
      {$ENDIF}
      {$IFDEF _ISS_OSS_INCLUDE_}
       ,ISS_OSS  { * Include Linux OSS API driver * }
+     {$ENDIF}
+     {$IFDEF _ISS_DISK_INCLUDE_}
+      ,ISS_Disk { * Include Diskwriter device * }
      {$ENDIF}
      ;
 
@@ -68,9 +71,9 @@ Function ISS_StopOutput : Boolean;
 { * Period Control * }
 Function ISS_GetPeriod(Channel : Word) : DWord;
 Function ISS_SetPeriod(Channel : Word; Period : Word) : Boolean;
-Function ISS_ChGetNotePeriod(Channel : DWord; Note : DWord) : DWord;
+Function ISS_ChGetNotePeriod(Channel : DWord; Note : Word) : DWord;
 Function ISS_SmpGetNotePeriod(SampleAddress : ISS_PSample;
-                              Note          : DWord) : DWord;
+                              Note          : Word) : DWord;
 
 { * Volume & Panning Control * }
 Function ISS_GetGlobalVolume : DWord;
@@ -93,8 +96,8 @@ Procedure ISS_UpdateOutput; { * Updates the output device.    * }
 
 Procedure ISS_SetSampleOffset(Channel : DWord; SampOffset : DWord);
 
-Var ISS_SystemOK       : Boolean; { * True if the system is initiated and * }
-                                  { * everything (seems:) OK. * }
+Var ISS_SystemOK       : Boolean; { * True if the system initialized and * }
+                                  { * everything is (seems:) OK. * }
 
     ISS_DevicesOK      : Boolean; { * True if there is an useable device * }
     ISS_DevicesNum     : DWord;   { * Number of devices * }
@@ -291,7 +294,7 @@ End;
 
 { * Get the period from the note and the sample definition * }
 Function ISS_SmpGetNotePeriod(SampleAddress : ISS_PSample;
-                              Note          : DWord) : DWord;
+                              Note          : Word) : DWord;
 Var BufPeriod : DWord;
     RealNote  : LongInt;
 Begin
@@ -316,7 +319,7 @@ Begin
 End;
 
 { * Get the period from the note and channel number. * }
-Function ISS_ChGetNotePeriod(Channel : DWord; Note : DWord) : DWord;
+Function ISS_ChGetNotePeriod(Channel : DWord; Note : Word) : DWord;
 Begin
  ISS_ChGetNotePeriod:=
    ISS_SmpGetNotePeriod(ISS_VirtualChannels^[Channel].VChSmpAddr,Note);
@@ -824,6 +827,12 @@ Begin
   ISS_SoundDevices[ISS_DevicesNum]:=@ISS_OSSDevice; { * Include OSS * }
   If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
  {$ENDIF}
+ {$IFDEF _ISS_DISK_INCLUDE_}
+  Inc(ISS_DevicesNum);
+  ISS_DiskDevInit; { * Init Disk * }
+  ISS_SoundDevices[ISS_DevicesNum]:=@ISS_DiskDevice; { * Include Disk * }
+  If Not ISS_SoundDevices[ISS_DevicesNum]^.DevAvail Then Dec(ISS_DevicesNum);
+ {$ENDIF}
 
  {$IFDEF _ISS_MAIN_DEBUGMODE_}
   If ISS_DevicesNum<>0 Then
@@ -845,9 +854,9 @@ Begin
   {$WARNINGS OFF} ISS_CompileCoder:={$I %CODER%}; {$WARNINGS ON}
   If ISS_CompileCoder='' Then ISS_CompileCoder:='an unknown guy';
   WriteLn('ISS_INIT: Inquisition Sound Server version ',ISS_VersionStr,' [',
-           {$I %DATE%},'] for ',ISS_PlatformStr);
-  WriteLn('ISS_INIT: Copyright (C) 1998-2001 by Charlie/Inquisition');
-  WriteLn('ISS_INIT: Compiled by : ',ISS_CompileCoder,' at ',{$I %TIME%});
+           {$I %DATE%},'] for ',ISS_PlatformStr,'/',ISS_CPUStr);
+  WriteLn('ISS_INIT: Copyright (C) 1998-2004 by Charlie/Inquisition');
+  WriteLn('ISS_INIT: Compiled by ',ISS_CompileCoder,' at ',{$I %TIME%});
   WriteLn('ISS_INIT: FPC Version : ',{$I %FPCVERSION%});
   WriteLn;
   WriteLn('ISS_INIT: Device Drivers Initialization...');
@@ -856,10 +865,10 @@ Begin
  DevInit:=ISS_InitDevices;
 
  {$IFDEF _ISS_MAIN_DEBUGMODE_}
-  WriteLn('ISS_INIT: Module Loaders Initialization...');
+  WriteLn('ISS_INIT: Module Handlers Initialization...');
  {$ENDIF}
 
- LdrInit:=ISS_InitLoaders;
+ LdrInit:=ISS_InitHandlers;
 
  {$IFDEF _ISS_MAIN_DEBUGMODE_}
   Write('ISS_INIT: System initialization ');
