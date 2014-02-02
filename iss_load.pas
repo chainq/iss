@@ -15,7 +15,7 @@
   CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 }
 
-{ * ISS_LOAD.PAS - High level loading routines                            }
+{ * ISS_HNDL.PAS - High level fileformat handler routines                 }
 {             OS - Platform Independent                                   }
 
 {$INCLUDE ISS_SET.INC}
@@ -27,13 +27,13 @@ Interface
 
 Uses ISS_Var { * Uses the system variables and types * }
      {$IFDEF _ISS_XM_INCLUDE_}
-      ,ISS_XM  { * Includes the XM loader * }
-     {$ENDIF}
-     {$IFDEF _ISS_MOD_INCLUDE_}
-      ,ISS_MOD { * Includes the MOD loader * }
+      ,ISS_XM  { * Includes the XM handler * }
      {$ENDIF}
      {$IFDEF _ISS_S3M_INCLUDE_}
-      ,ISS_S3M { * Includes the S3M loader * }
+      ,ISS_S3M { * Includes the S3M handler * }
+     {$ENDIF}
+     {$IFDEF _ISS_MOD_INCLUDE_}
+      ,ISS_MOD { * Includes the MOD handler * }
      {$ENDIF}
      {$IFDEF _ISS_LOAD_IDSMODE_}
       ,IDS_LOAD
@@ -50,16 +50,17 @@ Function ISS_IDSLoadModule(DFHandle : IDS_PDataFile; FileName : String;
 Function ISS_LoadInternalModule(ModMem : Pointer;
                             Var Module : ISS_PModule) : Boolean;
 Function ISS_FreeModule(Var Module : ISS_PModule) : Boolean;
+Procedure ISS_DecodePattern(EncPat : ISS_PPattern; DecPat : ISS_PDecodedPattern);
 
-Function ISS_InitLoaders : Boolean;
+Function ISS_InitHandlers : Boolean;
 
 Implementation
 
-Var ISS_LoaderOK  : Boolean; { * True if there is an usable loader * }
-    ISS_LoaderNum : DWord;   { * Number of loaders * }
+Var ISS_HandlerOK  : Boolean; { * True if there is an usable handler * }
+    ISS_HandlerNum : DWord;   { * Number of handlers * }
 
-    { * Loaders * }
-    ISS_Loader    : Array[1..ISS_MaxLoaders] Of ISS_PModuleLoader;
+    { * Handlers * }
+    ISS_Handler    : Array[1..ISS_MaxHandlers] Of ISS_PModuleHandler;
 
 
 {$IFDEF _ISS_LOAD_IDSMODE_}
@@ -69,7 +70,7 @@ Var ModuleFile : IDS_PFile;
 Begin
  ISS_IDSLoadModule:=False;
  If DFHandle=Nil Then Exit;
- If Not ISS_LoaderOk Then Exit;
+ If Not ISS_HandlerOk Then Exit;
 
  ModuleFile:=IDS_OpenFile(DFHandle,FileName);
  If ModuleFile=Nil Then Exit;
@@ -101,7 +102,7 @@ Var ModuleFile : File;
     ModuleMem  : Pointer;
 Begin
  ISS_LoadModule:=False;
- If ISS_LoaderOK Then Begin
+ If ISS_HandlerOK Then Begin
    { * Opening the file * }
    Assign(ModuleFile, FileName);
    FileMode:=0;
@@ -157,24 +158,24 @@ Begin
   End;
 
  Module:=Nil;
- If ISS_LoaderOK Then Begin
+ If ISS_HandlerOK Then Begin
 
-   { * Selecting Loader * }
+   { * Selecting Handler * }
    Counter:=0;
    Repeat
     Inc(Counter);
-    If Counter>ISS_LoaderNum Then Begin
+    If Counter>ISS_HandlerNum Then Begin
       { * ERROR CODE! * }
       Exit;
      End;
-    ISS_Loader[Counter]^.ModuleMem:=ModMem;
-   Until ISS_Loader[Counter]^.CheckModule();
+    ISS_Handler[Counter]^.ModuleMem:=ModMem;
+   Until ISS_Handler[Counter]^.CheckModule();
 
    { * Loading Module * }
-   With ISS_Loader[Counter]^ Do Begin
+   With ISS_Handler[Counter]^ Do Begin
 
      {$IFDEF _ISS_LOAD_DEBUGMODE_}
-      DebugInit;
+      DebugInit();
      {$ENDIF}
 
      New(ModulePtr); { * Allocating memory for the header * }
@@ -183,7 +184,8 @@ Begin
        Dispose(ModulePtr);
        Exit;
       End;
-     ModulePtr^.MStatus:=0; { * Clearing status * }
+     ModulePtr^.MStatus:=0;        { * Clearing status * }
+     ModulePtr^.MHandler:=Counter; { * Setting handler number * }
 
      { * Allocating pattern header memory * }
      For Counter:=0 To ModulePtr^.MPatternNum Do Begin
@@ -218,7 +220,7 @@ Begin
       End;
 
      {$IFDEF _ISS_LOAD_DEBUGMODE_}
-      DebugDone;
+      DebugDone();
      {$ENDIF}
 
      ModulePtr^.MID:=ISS_ModuleID;
@@ -243,7 +245,7 @@ Var Counter  : DWord;
     Counter2 : DWord;
 Begin
  ISS_FreeModule:=False;
- If ISS_LoaderOK Then Begin
+ If ISS_HandlerOK Then Begin
 
    { * Specified pointer not points to a loaded module? * }
    If (Module=Nil) Or (Module^.MID<>ISS_ModuleID) Then Begin
@@ -302,27 +304,50 @@ Begin
   End;
 End;
 
-{ * Initializes the low-level loader routines. * }
-Function ISS_InitLoaders : Boolean;
+{ * Decodes a pattern using specified handler * }
+Procedure ISS_DecodePattern(EncPat : ISS_PPattern; DecPat : ISS_PDecodedPattern);
 Begin
- ISS_LoaderNum:=0;
+ If ISS_CurrentModule<>NIL Then Begin
+   With ISS_CurrentModule^ Do Begin
+     ISS_Handler[MHandler]^.DecodePattern(EncPat,DecPat);
+    End;
+  End;
+End;
+
+
+{ * Initializes the low-level fileformat-handler routines. * }
+Function ISS_InitHandlers : Boolean;
+Begin
+ ISS_HandlerNum:=0;
 
  {$IFDEF _ISS_XM_INCLUDE_}
-  Inc(ISS_LoaderNum);
-  ISS_XMLoaderInit;
-  ISS_Loader[ISS_LoaderNum]:=@ISS_XMLoader;
+  Inc(ISS_HandlerNum);
+  ISS_XMHandlerInit;
+  ISS_Handler[ISS_HandlerNum]:=@ISS_XMHandler;
  {$ENDIF}
 
- If ISS_LoaderNum<>0 Then ISS_LoaderOK:=True Else ISS_LoaderOk:=False;
+ {$IFDEF _ISS_S3M_INCLUDE_}
+  Inc(ISS_HandlerNum);
+  ISS_S3MHandlerInit;
+  ISS_Handler[ISS_HandlerNum]:=@ISS_S3MHandler;
+ {$ENDIF}
+
+ {$IFDEF _ISS_MOD_INCLUDE_}
+  Inc(ISS_HandlerNum);
+  ISS_MODHandlerInit;
+  ISS_Handler[ISS_HandlerNum]:=@ISS_MODHandler;
+ {$ENDIF}
+
+ If ISS_HandlerNum<>0 Then ISS_HandlerOK:=True Else ISS_HandlerOk:=False;
 
  {$IFDEF _ISS_LOAD_DEBUGMODE_}
-  If ISS_LoaderOK Then
-    WriteLn('LDR_INIT: ',ISS_LoaderNum,' Module Loader(s) Initialized')
+  If ISS_HandlerOK Then
+    WriteLn('HND_INIT: ',ISS_HandlerNum,' Module Handler(s) Initialized')
    Else
-    WriteLn('LDR_INIT: WARNING! No Module Loaders Included!');
+    WriteLn('HND_INIT: WARNING! No Module Handlers Included!');
  {$ENDIF}
 
- ISS_InitLoaders:=ISS_LoaderOK;
+ ISS_InitHandlers:=ISS_HandlerOK;
 End;
 
 Begin
