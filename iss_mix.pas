@@ -1,5 +1,5 @@
 {
-  Copyright (c) 1998-2001,2014  Karoly Balogh <charlie@amigaspirit.hu>
+  Copyright (c) 1998-2003,2014  Karoly Balogh <charlie@amigaspirit.hu>
 
   Permission to use, copy, modify, and/or distribute this software for
   any purpose with or without fee is hereby granted, provided that the
@@ -24,6 +24,9 @@
 {$IFDEF I386}
 {$INCLUDE ISS_MX86.PAS}
 {$ELSE I386}
+{$IFDEF M68K}
+{$INCLUDE ISS_M68K.PAS}
+{$ELSE}
 Unit ISS_Mix;
 
 Interface
@@ -611,4 +614,5 @@ End;
 Begin
  ISS_MixerOK:=False;
 End.
+{$ENDIF}
 {$ENDIF}
