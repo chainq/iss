@@ -15,6 +15,16 @@
   Version No.  * Description of Modifications
   --------------------------------------------------------------------------
 
+   0.3.0       * THIRD RELEASE (2014 Note: never actually got released)
+               + Amiga support added. Needs Free Pascal 1.0.10.
+               + 680x0 version of mixer added.
+               ! Historical date when the 68k/Amiga version first worked 
+                 was 2003.08.30, ~21:30. :)
+               * OS/2 DART driver modified to work with the official MMOS2 
+                 units of Free Pascal. (2014 Note: these changes lost)
+               + Amiga MOD format support added.
+               - Lots of endianness bugs removed, mostly from the XM loader.
+
    0.2.1       * SECOND OFFICIAL RELEASE - Codename "Yavin"
                * Thanks for Zoom/INQ and TCC/INQ for test hardware support.
                + OS/2 support added.
