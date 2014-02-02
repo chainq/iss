@@ -38,9 +38,9 @@ Procedure ISS_MODHandlerInit; { * Handler init code * }
 
 Implementation
 
-Const {$IFDEF _ISS_LOAD_CREATELOGFILE_}
-       MODDebugLogName = 'modload.log'; { * Debug Log Filename * }
-      {$ENDIF}
+{$IFDEF _ISS_LOAD_CREATELOGFILE_}
+Const MODDebugLogName = 'modload.log'; { * Debug Log Filename * }
+{$ENDIF}
 
 Const MODFileIDsNum = 46;
       MODFileIDs : Array[1..MODFileIDsNum,0..3] Of Char =
