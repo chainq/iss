@@ -108,12 +108,12 @@
 
 { * >>> G L O B A L  D E F I N E S <<< * }
 
-{$IFDEF I386}
+{$IFDEF CPUI386}
 { * This is REQUIRED. If the record fields not aligned to WORD, * }
 { * the mixer WILL crash. This may change in the future. * }
  {$PACKRECORDS 2}
 {$ELSE}
-{$IFDEF M68K}
+{$IFDEF CPUM68K}
 { * This is REQUIRED. If the record fields not aligned to DWORD, * }
 { * the mixer WILL crash. This may change in the future. * }
  {$PACKRECORDS 4}
