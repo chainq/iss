@@ -92,7 +92,7 @@
 
 { * Diskwriter device should be used for debugging purposes only, * }
 { * because it's not fail safe. * }
-{$DEFINE _ISS_DISK_INCLUDE_}  
+{$DEFINE _ISS_DISK_INCLUDE_}
 {$DEFINE _ISS_DISK_DEBUGMODE_}
 
 
@@ -120,4 +120,5 @@
 {$ELSE}
 { * FIXME: have a default for now... I can't remember which is required... * }
  {$PACKRECORDS 2}
+{$ENDIF}
 {$ENDIF}
