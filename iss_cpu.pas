@@ -32,7 +32,7 @@ Function CBEL(BEL:DWord) : DWord;
 Implementation
 
 
-{$IFDEF I386}
+{$IFDEF CPUI386}
 {$ASMMODE INTEL}
 {/--------------------------------------------------------------------------\}
 {| i386 version                                                             |}
@@ -43,13 +43,13 @@ Function CLEW(LEW:Word) : Word; Assembler;
 Asm
  xor eax,eax
  mov ax,LEW
-End ['eax'];
+End;
 
 { * Correct Little Endian Long for i386 * }
 Function CLEL(LEL:DWord) : DWord; Assembler;
 Asm
  mov eax,LEL
-End ['eax'];
+End;
 
 { * Correct Big Endian Word for i386 * }
 Function CBEW(BEW:Word) : Word; Assembler;
@@ -57,19 +57,19 @@ Asm
  xor eax,eax
  mov ax,BEW
  xchg al,ah
-End ['eax'];
+End;
 
 { * Correct Big Endian Long for i386 * }
 Function CBEL(BEL:DWord) : DWord; Assembler;
 Asm
  mov   eax,BEL
  bswap eax
-End ['eax'];
+End;
 
 {$ENDIF}
 
 
-{$IFDEF M68K}
+{$IFDEF CPUM68K}
 {/--------------------------------------------------------------------------\}
 {| m68k version                                                             |}
 {\--------------------------------------------------------------------------/}
@@ -107,7 +107,7 @@ End ['d0'];
 
 
 {$IFDEF ENDIAN_BIG}
-{$IFNDEF M68K}
+{$IFNDEF CPUM68K}
 {$INFO Compiling for generic Big Endian }
 {/--------------------------------------------------------------------------\}
 {| generic big endian version                                               |}
@@ -141,7 +141,7 @@ End;
 
 
 {$IFDEF ENDIAN_LITTLE}
-{$IFNDEF I386}
+{$IFNDEF CPUI386}
 {$INFO Compiling for generic Little Endian }
 {/--------------------------------------------------------------------------\}
 {| generic little endian version                                            |}
